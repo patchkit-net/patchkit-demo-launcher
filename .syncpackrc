@@ -1,0 +1,23 @@
+{
+  "source": [
+    "runtime/package.json",
+    "theme/package.json"
+  ],
+  "versionGroups": [
+    {
+      "label": "Ensure PatchKit Launcher SDK packages are referenced with consistent versions",
+      "dependencies": [
+        "patchkit-launcher-**",
+        "patchkit-generic-launcher-**"
+      ],
+      "dependencyTypes": [
+        "prod",
+        "dev"
+      ],
+      "pinVersion": "1.0.0-beta.1"
+    },
+    {
+      "isIgnored": true
+    }
+  ]
+}
