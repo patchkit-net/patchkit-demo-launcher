@@ -14,7 +14,7 @@
         "prod",
         "dev"
       ],
-      "pinVersion": "1.0.0-beta.2"
+      "pinVersion": "1.0.0-beta.3"
     },
     {
       "isIgnored": true
