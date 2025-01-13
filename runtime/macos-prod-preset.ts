@@ -1,10 +1,10 @@
-import * as PatchKitGenericLauncher from "@upsoft/patchkit-generic-launcher-runtime-package-dev-tools";
+import * as PatchKitBasicLauncher from "@upsoft/patchkit-basic-launcher-runtime-package-dev-tools";
 
 import { SHARED_PROD_BASE_PRESET } from "./shared-prod-base-preset";
 
-export default PatchKitGenericLauncher.mergePartialPresets(
-  PatchKitGenericLauncher.MACOS_BASE_PRESET.value,
-  PatchKitGenericLauncher.mergePartialPresets(
+export default PatchKitBasicLauncher.mergePartialPresets(
+  PatchKitBasicLauncher.MACOS_BASE_PRESET.value,
+  PatchKitBasicLauncher.mergePartialPresets(
     SHARED_PROD_BASE_PRESET,
     {
       secret: `c01c9927633a4eb5d34cec23403fa615`,
@@ -12,4 +12,4 @@ export default PatchKitGenericLauncher.mergePartialPresets(
       appleTeamId: `VYL728DSU7`,
     },
   ),
-) satisfies PatchKitGenericLauncher.Preset;
+) satisfies PatchKitBasicLauncher.Preset;

@@ -3,10 +3,10 @@
   "name": "@upsoft/patchkit-demo-launcher-runtime",
   "version": "2.1.0",
   "scripts": {
-    "build": "build-patchkit-generic-launcher-runtime",
-    "dev": "dev-patchkit-generic-launcher-runtime"
+    "build": "build-patchkit-basic-launcher-runtime",
+    "dev": "dev-patchkit-basic-launcher-runtime"
   },
   "devDependencies": {
-    "@upsoft/patchkit-generic-launcher-runtime-package-dev-tools": "1.0.0-beta.3"
+    "@upsoft/patchkit-basic-launcher-runtime-package-dev-tools": "1.0.0-beta.4"
   }
 }

@@ -1,10 +1,10 @@
-import * as PatchKitGenericLauncher from "@upsoft/patchkit-generic-launcher-runtime-package-dev-tools";
+import * as PatchKitBasicLauncher from "@upsoft/patchkit-basic-launcher-runtime-package-dev-tools";
 
 import { SHARED_PROD_BASE_PRESET } from "./shared-prod-base-preset";
 
-export default PatchKitGenericLauncher.mergePartialPresets(
-  PatchKitGenericLauncher.WINDOWS_BASE_PRESET.value,
-  PatchKitGenericLauncher.mergePartialPresets(
+export default PatchKitBasicLauncher.mergePartialPresets(
+  PatchKitBasicLauncher.WINDOWS_BASE_PRESET.value,
+  PatchKitBasicLauncher.mergePartialPresets(
     SHARED_PROD_BASE_PRESET,
     {
       secret: `4cf675444d5c146202b57b1cc83c22cf`,
@@ -15,4 +15,4 @@ export default PatchKitGenericLauncher.mergePartialPresets(
       },
     },
   ),
-) satisfies PatchKitGenericLauncher.Preset;
+) satisfies PatchKitBasicLauncher.Preset;

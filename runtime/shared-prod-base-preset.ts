@@ -1,8 +1,8 @@
-import * as PatchKitGenericLauncher from "@upsoft/patchkit-generic-launcher-runtime-package-dev-tools";
+import * as PatchKitBasicLauncher from "@upsoft/patchkit-basic-launcher-runtime-package-dev-tools";
 
 import { SHARED_BASE_PRESET } from "./shared-base-preset";
 
-export const SHARED_PROD_BASE_PRESET = PatchKitGenericLauncher.mergePartialPresets(
+export const SHARED_PROD_BASE_PRESET = PatchKitBasicLauncher.mergePartialPresets(
   SHARED_BASE_PRESET,
   {
     id: `patchkit-demo-launcher`,
@@ -12,5 +12,5 @@ export const SHARED_PROD_BASE_PRESET = PatchKitGenericLauncher.mergePartialPrese
     protocol: {
       id: "patchkit-demo-launcher",
     },
-  } satisfies PatchKitGenericLauncher.PartialPreset,
+  } satisfies PatchKitBasicLauncher.PartialPreset,
 );

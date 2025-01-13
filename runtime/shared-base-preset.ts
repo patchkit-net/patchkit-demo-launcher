@@ -1,4 +1,4 @@
-import * as PatchKitGenericLauncher from "@upsoft/patchkit-generic-launcher-runtime-package-dev-tools";
+import * as PatchKitBasicLauncher from "@upsoft/patchkit-basic-launcher-runtime-package-dev-tools";
 
 export const SHARED_BASE_PRESET = {
   companyId: `upsoft`,
@@ -21,4 +21,4 @@ export const SHARED_BASE_PRESET = {
   },
   protocol: {},
   tray: {},
-} satisfies PatchKitGenericLauncher.PartialPreset;
+} satisfies PatchKitBasicLauncher.PartialPreset;
