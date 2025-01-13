@@ -493,11 +493,13 @@ export function RouteComponent() {
                     <div className="grid grid-cols-1 gap-6 px-12 py-6 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                       {
                         Object.entries(sortedAppsInfo).map(([appId, appInfo]) => (
-                          <AppCard
-                            key={appId}
-                            appId={appId}
-                            appInfo={appInfo}
-                          />
+                          // TODO: Remove suspense and gray out app card when no branches are available
+                          <Suspense key={appId} fallback={<></>}>
+                            <AppCard
+                              appId={appId}
+                              appInfo={appInfo}
+                            />
+                          </Suspense>
                         ))
                       }
                     </div>

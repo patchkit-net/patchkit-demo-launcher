@@ -7,6 +7,6 @@
     "dev": "dev-patchkit-basic-launcher-runtime"
   },
   "devDependencies": {
-    "@upsoft/patchkit-basic-launcher-runtime-package-dev-tools": "1.0.0-beta.4"
+    "@upsoft/patchkit-basic-launcher-runtime-package-dev-tools": "1.0.0"
   }
 }
