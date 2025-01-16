@@ -9,6 +9,9 @@ export default PatchKitBasicLauncher.mergePartialPresets(
     {
       secret: `c01c9927633a4eb5d34cec23403fa615`,
       iconFilePath: `./icons/macos.icns`,
+      codeCertificate: {
+        name: `Developer ID Application: Upsoft sp. z o. o. (VYL728DSU7)`,
+      },
       appleTeamId: `VYL728DSU7`,
     },
   ),

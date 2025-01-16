@@ -7,7 +7,7 @@ export default PatchKitBasicLauncher.mergePartialPresets(
   PatchKitBasicLauncher.mergePartialPresets(
     SHARED_PROD_BASE_PRESET,
     {
-      secret: `4cf675444d5c146202b57b1cc83c22cf`,
+      secret: `1dcf82beac635d9ea92b46a20ad62575`,
       iconFilePath: `./icons/windows.ico`,
       codeCertificate: {
         subjectName: `UPSOFT  sp. z o. o.`,
