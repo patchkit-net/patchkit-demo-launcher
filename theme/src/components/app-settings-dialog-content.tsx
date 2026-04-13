@@ -84,7 +84,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
-import { TypographyInlineCode } from "./ui/typography-inline-code";
 import { TypographyMuted } from "./ui/typography-muted";
 
 function AppSettingsDialogContentInstallationTabContent(
@@ -92,10 +91,12 @@ function AppSettingsDialogContentInstallationTabContent(
     appInfo,
     appDefaultBranchInfo,
     appDefaultBranchController,
+    onClose,
   }: {
     appInfo: AppInfo;
     appDefaultBranchInfo: AppBranchInfo;
     appDefaultBranchController: AppBranchController;
+    onClose?: () => void;
   },
 ) {
   const appLabel = getAppLabel({ appInfo, appBranchInfo: appDefaultBranchInfo });
@@ -256,6 +257,7 @@ function AppSettingsDialogContentInstallationTabContent(
                       message={`This will remove all files associated with ${appLabel}.`}
                       onConfirm={async () => {
                         await appDefaultBranchController.startUninstallTaskMutation.mutate({});
+                        onClose?.();
                       }}
                     />
                   </Dialog>
@@ -306,6 +308,7 @@ function AppSettingsDialogContentInstallationTabContent(
                       appInfo={appInfo}
                       appBranchInfo={appDefaultBranchInfo}
                       appBranchController={appDefaultBranchController}
+                      onClose={onClose}
                     />
                   </Dialog>
 
@@ -460,8 +463,10 @@ function AppSettingsDialogContentBranchesTabContent(
 export function AppSettingsDialogContent(
   {
     appId,
+    onClose,
   }: {
     appId: string;
+    onClose?: () => void;
   },
 ) {
   const { data: appInfoData } = useAppInfoSuspenseQuery({
@@ -554,6 +559,7 @@ export function AppSettingsDialogContent(
             appInfo={appInfo}
             appDefaultBranchInfo={appDefaultBranchInfo}
             appDefaultBranchController={appDefaultBranchController}
+            onClose={onClose}
           />
         </TabsContent>
         <TabsContent value="branches">

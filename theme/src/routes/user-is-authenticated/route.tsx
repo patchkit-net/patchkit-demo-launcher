@@ -245,10 +245,6 @@ function RouteComponent() {
             await navigate({
               from: Route.fullPath,
               to: "/user-is-authenticated/library",
-              search: prev => ({
-                ...prev,
-                isAppDownloadsPanelOpen: false,
-              }),
             });
           }}
         >

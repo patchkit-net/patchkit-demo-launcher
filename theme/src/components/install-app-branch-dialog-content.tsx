@@ -36,7 +36,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
-import { TypographyInlineCode } from "./ui/typography-inline-code";
 import { TypographyMuted } from "./ui/typography-muted";
 import { TypographySmall } from "./ui/typography-small";
 import { AppNotRegisteredBranchController } from "@upsoft/patchkit-launcher-runtime-api-react-theme-extras";
@@ -54,10 +53,12 @@ function InstallAppBranchDialogSuspenseContent(
     appInfo,
     appBranchInfo,
     appBranchController,
+    onClose,
   }: {
     appInfo: AppInfo;
     appBranchInfo: AppBranchInfo;
     appBranchController: AppNotRegisteredBranchController;
+    onClose?: () => void;
   },
 ) {
   const { data: appBranchLatestVersionIdData } = useAppBranchLatestVersionIdSuspenseQuery({
@@ -243,6 +244,8 @@ function InstallAppBranchDialogSuspenseContent(
                     appBranchInfo,
                   });
                 }
+
+                onClose?.();
               }}
             >
               Install
@@ -267,10 +270,12 @@ export function InstallAppBranchDialogContent(
     appInfo,
     appBranchInfo,
     appBranchController,
+    onClose,
   }: {
     appInfo: AppInfo;
     appBranchInfo: AppBranchInfo;
     appBranchController: AppNotRegisteredBranchController;
+    onClose?: () => void;
   },
 ) {
   const appLabel = getAppLabel({
@@ -291,6 +296,7 @@ export function InstallAppBranchDialogContent(
             appInfo={appInfo}
             appBranchInfo={appBranchInfo}
             appBranchController={appBranchController}
+            onClose={onClose}
           />
         </Suspense>
       </div>

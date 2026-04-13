@@ -31,17 +31,17 @@ export function AreYouSureDialogContent(
           <DialogClose asChild>
             <Button
               className="w-24"
-              onClick={onConfirm}
+              variant="ghost"
             >
-              Confirm
+              Cancel
             </Button>
           </DialogClose>
           <DialogClose asChild>
             <Button
               className="w-24"
-              variant="destructive"
+              onClick={onConfirm}
             >
-              Cancel
+              Confirm
             </Button>
           </DialogClose>
         </div>
