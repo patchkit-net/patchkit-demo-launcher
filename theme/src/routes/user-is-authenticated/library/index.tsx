@@ -308,15 +308,15 @@ export function RouteComponent() {
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value={AppsFilteringUserMode.Disabled} id="apps-filtering-user-mode-all" />
-            <Label htmlFor="apps-filtering-user-mode-all">Disabled</Label>
+            <Label htmlFor="apps-filtering-user-mode-all">All</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value={AppsFilteringUserMode.OnlyFavourite} id="apps-filtering-user-mode-only-favourite" />
-            <Label htmlFor="apps-filtering-user-mode-only-favourite">Only Favourite</Label>
+            <Label htmlFor="apps-filtering-user-mode-only-favourite">Favourite</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value={AppsFilteringUserMode.OnlyInstalled} id="apps-filtering-user-mode-only-installed" />
-            <Label htmlFor="apps-filtering-user-mode-only-installed">Only Installed</Label>
+            <Label htmlFor="apps-filtering-user-mode-only-installed">Installed</Label>
           </div>
         </RadioGroup>
         <Separator />
