@@ -43,6 +43,7 @@ import { cn } from "@/lib/utils";
 import { AreYouSureDialogContent } from "./are-you-sure-dialog-content";
 import { InstallAppBranchDialogContent } from "./install-app-branch-dialog-content";
 import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 import {
   Card,
   CardContent,
@@ -123,18 +124,12 @@ function AppSettingsDialogContentInstallationTabContent(
               <>
                 <CardContent className="flex flex-col items-center gap-2">
                   <div className="grid w-full grid-cols-[1fr_auto] items-center gap-2">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger className="overflow-hidden" asChild>
-                          <TypographyInlineCode className="h-8 content-center truncate text-center">
-                            {appDefaultBranchController.rootDir.path}
-                          </TypographyInlineCode>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          {appDefaultBranchController.rootDir.path}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <Input
+                      readOnly
+                      value={appDefaultBranchController.rootDir.path}
+                      className="h-10 cursor-default font-mono text-sm"
+                      ref={(el) => { if (el) el.scrollLeft = el.scrollWidth; }}
+                    />
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger className="overflow-hidden" asChild>

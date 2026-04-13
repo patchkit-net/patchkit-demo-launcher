@@ -21,6 +21,8 @@ import { tryCreatingAppBranchStartMenuShortcut } from "@/lib/shortcuts/try-creat
 import { SpinnerLayout } from "./spinner-layout";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
 import {
   DialogClose,
   DialogContent,
@@ -108,18 +110,12 @@ function InstallAppBranchDialogSuspenseContent(
     <div className="flex size-full flex-col justify-between">
       <div className="flex flex-col gap-2">
         <div className="grid grid-cols-[1fr_auto] items-center gap-2">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger className="overflow-hidden" asChild>
-                <TypographyInlineCode className="h-8 content-center truncate text-center">
-                  {appBranchRootDirPath}
-                </TypographyInlineCode>
-              </TooltipTrigger>
-              <TooltipContent>
-                {appBranchRootDirPath}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Input
+            readOnly
+            value={appBranchRootDirPath}
+            className="h-10 cursor-default font-mono text-sm"
+            ref={(el) => { if (el) el.scrollLeft = el.scrollWidth; }}
+          />
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger className="overflow-hidden" asChild>
@@ -193,26 +189,28 @@ function InstallAppBranchDialogSuspenseContent(
         }
       </div>
       <div className="flex flex-col gap-2">
-        <div className="flex flex-row gap-2">
+        <div className="flex flex-row items-center gap-2">
           <Checkbox
+            id="create-desktop-shortcut"
             checked={shouldCreateAppBranchDesktopShortcut}
             onCheckedChange={(checked) => {
               setShouldCreateAppBranchDesktopShortcut(checked === true);
             }}
           />
-          <TypographyMuted>Create Desktop Shortcut</TypographyMuted>
+          <Label htmlFor="create-desktop-shortcut" className="cursor-pointer text-sm text-muted-foreground font-normal">Create Desktop Shortcut</Label>
         </div>
         {
           IS_CREATING_START_MENU_SHORTCUT_SUPPORTED
             ? (
-                <div className="flex flex-row gap-2">
+                <div className="flex flex-row items-center gap-2">
                   <Checkbox
+                    id="create-start-menu-shortcut"
                     checked={shouldCreateAppBranchStartMenuShortcut}
                     onCheckedChange={(checked) => {
                       setShouldCreateAppBranchStartMenuShortcut(checked === true);
                     }}
                   />
-                  <TypographyMuted>Create Start Menu Shortcut</TypographyMuted>
+                  <Label htmlFor="create-start-menu-shortcut" className="cursor-pointer text-sm text-muted-foreground font-normal">Create Start Menu Shortcut</Label>
                 </div>
               )
             : <></>
