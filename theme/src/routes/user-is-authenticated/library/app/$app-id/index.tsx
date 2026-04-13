@@ -55,11 +55,11 @@ import { TypographyH1 } from "@/components/ui/typography-h1";
 import { TypographyH3 } from "@/components/ui/typography-h3";
 import { TypographyMuted } from "@/components/ui/typography-muted";
 import { TypographySmall } from "@/components/ui/typography-small";
-import { useAppDefaultBranchIdInfo } from "@/lib/apps-default-branch-id-store";
+import { useAppDefaultBranchIdInfo } from "@/lib/stores/apps-default-branch-id-store";
 import {
   useAppIsFavouriteInfo,
   useSetAppIsFavouriteInfo,
-} from "@/lib/apps-favourite-info-store";
+} from "@/lib/stores/apps-favourite-info-store";
 import { getAppLabel } from "@/lib/get-app-label";
 import { cn } from "@/lib/utils";
 import { AppBranchController, AppNotRegisteredBranchController, AppRegisteredBranchController, useAppBranchSuspenseController } from "@upsoft/patchkit-launcher-runtime-api-react-theme-extras";

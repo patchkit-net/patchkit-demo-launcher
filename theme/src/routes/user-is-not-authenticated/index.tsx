@@ -20,7 +20,7 @@ import { TypographySmall } from "@/components/ui/typography-small";
 import { ParticlesComponentContext } from "@/contexts/particles-component-context";
 import { ThemeVariantContext } from "@/contexts/theme-variant-context";
 import { UserContext } from "@/contexts/user-context";
-import { ThemeVariant } from "@/lib/theme-variant";
+import { ThemeVariant } from "@/lib/theme/theme-variant";
 
 export const Route = createFileRoute("/user-is-not-authenticated/")({
   component: RouteComponent,

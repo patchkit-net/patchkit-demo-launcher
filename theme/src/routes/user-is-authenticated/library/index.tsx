@@ -61,12 +61,12 @@ import {
   APP_DEFAULT_BRANCH_ID_DEFAULT_INFO,
   useAppDefaultBranchIdInfo,
   useAppsDefaultBranchIdInfo,
-} from "@/lib/apps-default-branch-id-store";
+} from "@/lib/stores/apps-default-branch-id-store";
 import {
   useAppIsFavouriteInfo,
   useAppsIsFavouriteInfo,
   useSetAppIsFavouriteInfo,
-} from "@/lib/apps-favourite-info-store";
+} from "@/lib/stores/apps-favourite-info-store";
 import { getAppBranchLabel } from "@/lib/get-app-branch-label";
 import { cn } from "@/lib/utils";
 

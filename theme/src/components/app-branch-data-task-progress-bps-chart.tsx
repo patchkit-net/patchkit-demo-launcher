@@ -14,7 +14,7 @@ import {
 } from "recharts";
 
 import { ThemeVariantContext } from "@/contexts/theme-variant-context";
-import { ThemeVariant } from "@/lib/theme-variant";
+import { ThemeVariant } from "@/lib/theme/theme-variant";
 
 import {
   ChartConfig,

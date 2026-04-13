@@ -15,10 +15,10 @@ import {
 } from "react";
 
 import { firebaseAuth } from "@/lib/firebase/auth";
-import { generateUserOauth2CodeVerifier } from "@/lib/generate-user-oauth2-code-verifier";
-import { getUserOauth2CodeChallenge } from "@/lib/get-user-oauth2-code-challange";
-import { UserAuth } from "@/lib/user-auth";
-import { UserCredentials } from "@/lib/user-credentials";
+import { generateUserOauth2CodeVerifier } from "@/lib/auth/generate-user-oauth2-code-verifier";
+import { getUserOauth2CodeChallenge } from "@/lib/auth/get-user-oauth2-code-challange";
+import { UserAuth } from "@/lib/auth/user-auth";
+import { UserCredentials } from "@/lib/auth/user-credentials";
 
 interface SignInFirebaseUserWithGoogleTaskState {
   firebaseUserGoogleOauth2CodeVerifier: string;

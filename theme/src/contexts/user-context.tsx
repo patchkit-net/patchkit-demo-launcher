@@ -6,8 +6,8 @@ import {
 } from "react";
 
 import { CUSTOMIZATION } from "@/customization";
-import { UserAuth } from "@/lib/user-auth";
-import { UserCredentials } from "@/lib/user-credentials";
+import { UserAuth } from "@/lib/auth/user-auth";
+import { UserCredentials } from "@/lib/auth/user-credentials";
 
 import { UserContext as CustomUserContext } from "./custom-user-context";
 import { UserContext as FirebaseUserContext } from "./firebase-user-context";

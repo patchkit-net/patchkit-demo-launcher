@@ -3,9 +3,9 @@ import {
   AppInfo,
 } from "@upsoft/patchkit-launcher-runtime-api-react-theme-client";
 
-import { getAppLabel } from "./get-app-label";
+import { getAppLabel } from "../get-app-label";
 
-export function getAppBranchStartMenuShortcutPathTemplate(
+export function getAppBranchDesktopShortcutPathTemplate(
   {
     appInfo,
     appBranchInfo,
@@ -19,5 +19,5 @@ export function getAppBranchStartMenuShortcutPathTemplate(
     appBranchInfo,
   });
 
-  return `{windowsStartMenuDirPath}/${appLabel}`;
+  return `{desktopDirPath}/${appLabel}`;
 }

@@ -50,7 +50,7 @@ import { TypographyInlineCode } from "@/components/ui/typography-inline-code";
 import { TypographyMuted } from "@/components/ui/typography-muted";
 import { ThemeVariantContext } from "@/contexts/theme-variant-context";
 import { UserContext } from "@/contexts/user-context";
-import { UserAuth } from "@/lib/user-auth";
+import { UserAuth } from "@/lib/auth/user-auth";
 import { cn } from "@/lib/utils";
 
 const TanStackRouterDevtoolsOnlyInDev = import.meta.env.MODE === "production"

@@ -14,9 +14,9 @@ import {
 } from "react";
 
 import { getAppLabel } from "@/lib/get-app-label";
-import { IS_CREATING_START_MENU_SHORTCUT_SUPPORTED } from "@/lib/is-creating-start-menu-shortcut-supported";
-import { tryCreatingAppBranchDesktopShortcut } from "@/lib/try-creating-app-branch-desktop-shortcut";
-import { tryCreatingAppBranchStartMenuShortcut } from "@/lib/try-creating-app-branch-start-menu-shortcut";
+import { IS_CREATING_START_MENU_SHORTCUT_SUPPORTED } from "@/lib/shortcuts/is-creating-start-menu-shortcut-supported";
+import { tryCreatingAppBranchDesktopShortcut } from "@/lib/shortcuts/try-creating-app-branch-desktop-shortcut";
+import { tryCreatingAppBranchStartMenuShortcut } from "@/lib/shortcuts/try-creating-app-branch-start-menu-shortcut";
 
 import { SpinnerLayout } from "./spinner-layout";
 import { Button } from "./ui/button";

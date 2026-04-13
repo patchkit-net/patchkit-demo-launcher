@@ -33,11 +33,11 @@ import {
   SetAppDefaultBranchIdInfo,
   useAppDefaultBranchIdInfo,
   useSetAppDefaultBranchIdInfo,
-} from "@/lib/apps-default-branch-id-store";
+} from "@/lib/stores/apps-default-branch-id-store";
 import { getAppBranchLabel } from "@/lib/get-app-branch-label";
 import { getAppLabel } from "@/lib/get-app-label";
-import { tryCreatingAppBranchDesktopShortcut } from "@/lib/try-creating-app-branch-desktop-shortcut";
-import { tryCreatingAppBranchStartMenuShortcut } from "@/lib/try-creating-app-branch-start-menu-shortcut";
+import { tryCreatingAppBranchDesktopShortcut } from "@/lib/shortcuts/try-creating-app-branch-desktop-shortcut";
+import { tryCreatingAppBranchStartMenuShortcut } from "@/lib/shortcuts/try-creating-app-branch-start-menu-shortcut";
 import { cn } from "@/lib/utils";
 
 import { AreYouSureDialogContent } from "./are-you-sure-dialog-content";

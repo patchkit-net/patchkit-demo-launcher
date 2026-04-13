@@ -7,9 +7,9 @@ import {
 } from "react";
 import * as typia from "typia";
 
-import { UserAuth } from "@/lib/user-auth";
-import { UserCredentials } from "@/lib/user-credentials";
-import { UserCredentialsAreInvalid } from "@/lib/user-credentials-are-invalid";
+import { UserAuth } from "@/lib/auth/user-auth";
+import { UserCredentials } from "@/lib/auth/user-credentials";
+import { UserCredentialsAreInvalid } from "@/lib/auth/user-credentials-are-invalid";
 
 interface UserInternalAuth {
   id: string;
