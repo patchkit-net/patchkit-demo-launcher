@@ -22,7 +22,6 @@ interface UserContextValue {
     }
   >>;
   startSignInUserWithGoogleTaskMutation: ReturnType<typeof useMutation<void, unknown>>;
-  startSignInUserWithTwitterTaskMutation: ReturnType<typeof useMutation<void, unknown>>;
   signOutUserMutation: ReturnType<typeof useMutation<void, unknown>>;
 }
 

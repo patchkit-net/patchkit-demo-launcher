@@ -1,15 +1,11 @@
 import { useMutation } from "@tanstack/react-query";
 import {
-  callNodeFetch,
   configureOauth2LoopbackDefaultServer,
 } from "@upsoft/patchkit-launcher-runtime-api-react-theme-client";
 import {
   useOauth2LoopbackRequestRegisteredListener,
-  useProtocolRequestRegisteredListener,
 } from "@upsoft/patchkit-launcher-runtime-api-react-theme-extras";
-import * as CryptoJS from "crypto-js";
 import * as FirebaseAuth from "firebase/auth";
-import { default as Oauth } from "oauth-1.0a";
 import {
   createContext,
   useCallback,
@@ -32,19 +28,6 @@ interface SignInFirebaseUserWithGoogleTaskState {
 const FIREBASE_GOOGLE_OAUTH2_CLIENT_ID = `301007649698-71lvhjg7p157u01vj13e93a4ctvpfgtn.apps.googleusercontent.com`;
 const FIREBASE_GOOGLE_OAUTH2_CLIENT_SECRET = `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`;
 
-const FIREBASE_TWITTER_API_KEY = `TODO`;
-const FIREBASE_TWITTER_API_SECRET = `TODO`;
-const FIREBASE_TWITTER_OAUTH = new Oauth({
-  consumer: {
-    key: FIREBASE_TWITTER_API_KEY,
-    secret: FIREBASE_TWITTER_API_SECRET,
-  },
-  signature_method: "HMAC-SHA1",
-  hash_function: (message, key) => {
-    return CryptoJS.HmacSHA1(message, key).toString(CryptoJS.enc.Base64); ;
-  },
-});
-
 interface UserContextValue {
   userAuth: UserAuth | undefined;
   signInUserWithCredentialsMutation: ReturnType<typeof useMutation<
@@ -55,7 +38,6 @@ interface UserContextValue {
     }
   >>;
   startSignInUserWithGoogleTaskMutation: ReturnType<typeof useMutation<void, unknown>>;
-  startSignInUserWithTwitterTaskMutation: ReturnType<typeof useMutation<void, unknown>>;
   signOutUserMutation: ReturnType<typeof useMutation<void, unknown>>;
 }
 
@@ -157,53 +139,6 @@ export function UserContextProvider({
     },
   });
 
-  const startSignInUserWithTwitterTaskMutation: UserContextValue["startSignInUserWithTwitterTaskMutation"] = useMutation({
-    mutationFn: async () => {
-      const firebaseUserTwitterOauthCallback = `patchkit-demo-launcher://twitter-auth`;
-
-      let requestTokenEndpointRequestUrl = `https://api.x.com/oauth/request_token?`;
-
-      requestTokenEndpointRequestUrl += `oauth_callback=${encodeURIComponent(firebaseUserTwitterOauthCallback)}`;
-
-      const requestTokenEndpointNodeFetchResult = await callNodeFetch({
-        nodeFetchArgs: {
-          input: requestTokenEndpointRequestUrl,
-          init: {
-            method: `POST`,
-            headers: {
-              Authorization: FIREBASE_TWITTER_OAUTH.toHeader(
-                FIREBASE_TWITTER_OAUTH.authorize({
-                  url: requestTokenEndpointRequestUrl,
-                  method: `POST`,
-                }),
-              ).Authorization,
-            },
-          },
-        },
-      });
-
-      if (requestTokenEndpointNodeFetchResult.error !== undefined) {
-        console.error(requestTokenEndpointNodeFetchResult.error);
-      } else {
-        const requestTokenEndpointResponse = requestTokenEndpointNodeFetchResult.response;
-
-        if (requestTokenEndpointResponse.ok) {
-          const requestTokenEndpointResponseBody = new URLSearchParams(requestTokenEndpointResponse.bodyAsText);
-
-          const firebaseUserTwitterOauthToken = requestTokenEndpointResponseBody.get("oauth_token");
-          const firebaseUserTwitterOauthTokenSecret = requestTokenEndpointResponseBody.get("oauth_token_secret");
-
-          if (firebaseUserTwitterOauthToken !== null && firebaseUserTwitterOauthTokenSecret !== null) {
-            window.open(
-              `https://api.x.com/oauth/authorize?oauth_token=${firebaseUserTwitterOauthToken}`,
-              `_blank`,
-            );
-          }
-        }
-      }
-    },
-  });
-
   useOauth2LoopbackRequestRegisteredListener(
     useCallback(
       async (
@@ -261,74 +196,6 @@ export function UserContextProvider({
     ),
   );
 
-  useProtocolRequestRegisteredListener(
-    useCallback(
-      async (
-        {
-          protocolRequestInfo,
-        },
-      ) => {
-        try {
-          const protocolRequestUrlAsObject = new URL(protocolRequestInfo.url);
-
-          if (protocolRequestUrlAsObject.pathname.includes(`twitter-auth`)) {
-            const firebaseUserTwitterOauthToken = protocolRequestUrlAsObject.searchParams.get(`oauth_token`);
-            const firebaseUserTwitterOauthVerifier = protocolRequestUrlAsObject.searchParams.get(`oauth_verifier`);
-
-            if (firebaseUserTwitterOauthToken !== null && firebaseUserTwitterOauthVerifier !== null) {
-              let accessTokenEndpointRequestUrl = `https://api.x.com/oauth/access_token?`;
-
-              accessTokenEndpointRequestUrl += `oauth_token=${firebaseUserTwitterOauthToken}&`;
-              accessTokenEndpointRequestUrl += `oauth_verifier=${firebaseUserTwitterOauthVerifier}`;
-
-              const accessTokenEndpointNodeFetchResult = await callNodeFetch({
-                nodeFetchArgs: {
-                  input: accessTokenEndpointRequestUrl,
-                  init: {
-                    method: `POST`,
-                    headers: {
-                      Authorization: FIREBASE_TWITTER_OAUTH.toHeader(
-                        FIREBASE_TWITTER_OAUTH.authorize({
-                          url: accessTokenEndpointRequestUrl,
-                          method: `POST`,
-                        }),
-                      ).Authorization,
-                    },
-                  },
-                },
-              });
-
-              if (accessTokenEndpointNodeFetchResult.error !== undefined) {
-                console.error(accessTokenEndpointNodeFetchResult.error);
-              } else {
-                const accessTokenEndpointResponse = accessTokenEndpointNodeFetchResult.response;
-
-                const accessTokenEndpointResponseBody = new URLSearchParams(accessTokenEndpointResponse.bodyAsText);
-
-                const firebaseUserTwitterOauthAccessToken = accessTokenEndpointResponseBody.get("oauth_token");
-                const firebaseUserTwitterOauthAccessTokenSecret = accessTokenEndpointResponseBody.get("oauth_token_secret");
-
-                if (firebaseUserTwitterOauthAccessToken !== null && firebaseUserTwitterOauthAccessTokenSecret !== null) {
-                  await FirebaseAuth.signInWithCredential(
-                    firebaseAuth,
-                    FirebaseAuth.TwitterAuthProvider.credential(
-                      firebaseUserTwitterOauthAccessToken,
-                      firebaseUserTwitterOauthAccessTokenSecret,
-                    ),
-                  );
-                }
-              }
-            }
-          }
-        } catch (e) {
-          console.error(e);
-        }
-      },
-      [
-      ],
-    ),
-  );
-
   const signOutUserMutation: UserContextValue["signOutUserMutation"] = useMutation({
     mutationFn: async () => {
       await FirebaseAuth.signOut(firebaseAuth);
@@ -341,7 +208,6 @@ export function UserContextProvider({
         userAuth,
         signInUserWithCredentialsMutation,
         startSignInUserWithGoogleTaskMutation,
-        startSignInUserWithTwitterTaskMutation,
         signOutUserMutation,
       };
     },
@@ -349,7 +215,6 @@ export function UserContextProvider({
       userAuth,
       signInUserWithCredentialsMutation,
       startSignInUserWithGoogleTaskMutation,
-      startSignInUserWithTwitterTaskMutation,
       signOutUserMutation,
     ],
   );

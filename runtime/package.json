@@ -5,7 +5,9 @@
   "scripts": {
     "build": "build-patchkit-basic-launcher-runtime",
     "dev": "dev-patchkit-basic-launcher-runtime",
-    "dev:mac": "dev-patchkit-basic-launcher-runtime -p macos-prod-preset.ts -t http://localhost:5173"
+    "dev:mac": "dev-patchkit-basic-launcher-runtime -p macos-prod-preset.ts -t http://localhost:5173",
+    "dev:win": "dev-patchkit-basic-launcher-runtime -p windows-prod-preset.ts -t http://localhost:5173",
+    "dev:lin": "dev-patchkit-basic-launcher-runtime -p linux-prod-preset.ts -t http://localhost:5173"
   },
   "devDependencies": {
     "@upsoft/patchkit-basic-launcher-runtime-package-dev-tools": "2.0.0-alpha.27"

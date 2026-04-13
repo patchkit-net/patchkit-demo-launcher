@@ -193,7 +193,6 @@ function RouteComponent() {
         },
       ) => {
         const urlAsObject = new URL(protocolRequestInfo.url);
-        console.log(urlAsObject);
 
         if (urlAsObject.href.startsWith(`${PROTOCOL_INFO.value!.id}://start-app-branch-process`)) {
           const appId = urlAsObject.searchParams.get("appId");
