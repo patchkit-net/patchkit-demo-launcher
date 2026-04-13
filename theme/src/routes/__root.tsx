@@ -233,10 +233,11 @@ export function RouteComponent() {
         <Outlet />
       </div>
       <Toaster />
-      <Suspense>
+      {/* Uncomment to enable TanStack Router and Query devtools overlay */}
+      {/* <Suspense>
         <TanStackRouterDevtoolsOnlyInDev />
         <RuntimeApiQueryClientDevToolsOnlyInDev />
-      </Suspense>
+      </Suspense> */}
     </div>
   );
 }
