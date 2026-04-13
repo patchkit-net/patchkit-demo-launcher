@@ -9,7 +9,7 @@
     "lint": "eslint . --max-warnings=0",
     "dev": "vite",
     "preview": "vite preview",
-    "publish": "vite build && publish-patchkit-launcher-theme"
+    "publish": "dotenv -e ../.env -- sh -c 'vite build && publish-patchkit-launcher-theme -p prod-theme-preset.ts'"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.0.0",
@@ -82,6 +82,7 @@
     "unplugin-fonts": "1.1.1",
     "vite": "5.4.8",
     "vite-plugin-pwa": "0.20.5",
-    "vite-tsconfig-paths": "5.0.1"
+    "vite-tsconfig-paths": "5.0.1",
+    "dotenv-cli": "^8.0.0"
   }
 }
