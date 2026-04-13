@@ -9,15 +9,15 @@ import {
   AppBranchState,
   AppBranchTaskType,
   AppInfo,
-  useAppBranchTaskState,
-  useAppsRegisteredBranchesState,
+  useAppBranchTaskStateSuspenseQuery,
+  useAppsRegisteredBranchesStateSuspenseQuery,
 } from "@upsoft/patchkit-launcher-runtime-api-react-theme-client";
 import {
   useAppBranchRepairTaskCancelMutation,
   useAppBranchStartRepairTaskMutation,
   useAppBranchStartUpdateTaskMutation,
   useAppBranchUpdateTaskCancelMutation,
-  useAppInfo,
+  useAppInfoSuspenseQuery,
 } from "@upsoft/patchkit-launcher-runtime-api-react-theme-client";
 import {
   PanelsRightBottomIcon,
@@ -263,15 +263,23 @@ function AppBranchTaskView(
     appBranchTaskId: number;
   },
 ) {
-  const appInfo = useAppInfo({
+  const { data: appInfoData } = useAppInfoSuspenseQuery({
     appId,
   });
+  if (!appInfoData.isValid) {
+    throw new Error(`Failed to fetch app info: ${appInfoData.errorTypeName}`);
+  }
+  const appInfo = appInfoData.appInfo;
 
-  const appBranchTaskState = useAppBranchTaskState({
+  const { data: appBranchTaskStateData } = useAppBranchTaskStateSuspenseQuery({
     appId,
     appBranchId,
     appBranchTaskId,
   });
+  if (!appBranchTaskStateData.isValid) {
+    throw new Error(`Failed to fetch task state: ${appBranchTaskStateData.errorTypeName}`);
+  }
+  const appBranchTaskState = appBranchTaskStateData.appBranchTaskState;
 
   if (
     appBranchTaskState.type === AppBranchTaskType.UpdateTask
@@ -316,7 +324,11 @@ function AppBranchLastOngoingDataTaskView(
 }
 
 function AppsDownloads() {
-  const appsRegisteredBranchesState = useAppsRegisteredBranchesState({});
+  const { data: appsRegisteredBranchesStateData } = useAppsRegisteredBranchesStateSuspenseQuery({});
+  if (!appsRegisteredBranchesStateData.isValid) {
+    throw new Error(`Failed to fetch registered branches state: ${appsRegisteredBranchesStateData.errorTypeName}`);
+  }
+  const appsRegisteredBranchesState = appsRegisteredBranchesStateData.appsRegisteredBranchesState;
 
   return (
     <ScrollArea className="size-full">

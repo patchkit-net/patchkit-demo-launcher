@@ -2,9 +2,9 @@ import {
   AppBranchInfo,
   AppInfo,
   displaySelectAppBranchRootDirDialog,
-  useAppBranchDefaultRootDirPath,
-  useAppBranchLatestVersionId,
-  useAppBranchVersionInfo,
+  useAppBranchDefaultRootDirPathSuspenseQuery,
+  useAppBranchLatestVersionIdSuspenseQuery,
+  useAppBranchVersionInfoSuspenseQuery,
   useDirDiskFreeSpaceBytesCountQuery,
 } from "@upsoft/patchkit-launcher-runtime-api-react-theme-client";
 import { FolderEditIcon } from "lucide-react";
@@ -58,21 +58,33 @@ function InstallAppBranchDialogSuspenseContent(
     appBranchController: AppNotRegisteredBranchController;
   },
 ) {
-  const appBranchLatestVersionId = useAppBranchLatestVersionId({
+  const { data: appBranchLatestVersionIdData } = useAppBranchLatestVersionIdSuspenseQuery({
     appId: appInfo.id,
     appBranchId: appBranchInfo.id,
   });
+  if (!appBranchLatestVersionIdData.isValid) {
+    throw new Error(`Failed to fetch latest version: ${appBranchLatestVersionIdData.errorTypeName}`);
+  }
+  const appBranchLatestVersionId = appBranchLatestVersionIdData.appBranchLatestVersionId;
 
-  const appBranchLatestVersionInfo = useAppBranchVersionInfo({
+  const { data: appBranchLatestVersionInfoData } = useAppBranchVersionInfoSuspenseQuery({
     appId: appInfo.id,
     appBranchId: appBranchInfo.id,
     appBranchVersionId: appBranchLatestVersionId,
   });
+  if (!appBranchLatestVersionInfoData.isValid) {
+    throw new Error(`Failed to fetch version info: ${appBranchLatestVersionInfoData.errorTypeName}`);
+  }
+  const appBranchLatestVersionInfo = appBranchLatestVersionInfoData.appBranchVersionInfo;
 
-  const appBranchDefaultRootDirPath = useAppBranchDefaultRootDirPath({
+  const { data: appBranchDefaultRootDirPathData } = useAppBranchDefaultRootDirPathSuspenseQuery({
     appId: appInfo.id,
     appBranchId: appBranchInfo.id,
   });
+  if (!appBranchDefaultRootDirPathData.isValid) {
+    throw new Error(`Failed to fetch default root dir path: ${appBranchDefaultRootDirPathData.errorTypeName}`);
+  }
+  const appBranchDefaultRootDirPath = appBranchDefaultRootDirPathData.appBranchDefaultRootDirPath;
 
   const [shouldCreateAppBranchDesktopShortcut, setShouldCreateAppBranchDesktopShortcut] = useState<boolean>(false);
 

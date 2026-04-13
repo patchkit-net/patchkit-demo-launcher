@@ -8,6 +8,6 @@
     "dev:mac": "dev-patchkit-basic-launcher-runtime -p macos-prod-preset.ts -t http://localhost:5173"
   },
   "devDependencies": {
-    "@upsoft/patchkit-basic-launcher-runtime-package-dev-tools": "1.5.0"
+    "@upsoft/patchkit-basic-launcher-runtime-package-dev-tools": "2.0.0-alpha.27"
   }
 }

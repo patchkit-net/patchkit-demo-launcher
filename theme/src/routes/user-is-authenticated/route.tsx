@@ -43,7 +43,7 @@ import { TypographyLarge } from "@/components/ui/typography-large";
 import { TypographyMuted } from "@/components/ui/typography-muted";
 import { UserContext } from "@/contexts/user-context";
 import { cn } from "@/lib/utils";
-import { useAppBranchTaskFinishedPendingEventListener, useProtocolPendingRequestListener } from "@upsoft/patchkit-launcher-runtime-api-react-theme-extras";
+import { useAppBranchTaskFinishedEventRegisteredListener, useProtocolRequestRegisteredListener } from "@upsoft/patchkit-launcher-runtime-api-react-theme-extras";
 
 export const Route = createFileRoute("/user-is-authenticated")({
   component: RouteComponent,
@@ -102,18 +102,18 @@ function RouteComponent() {
     retry: () => void;
   } | undefined>(undefined);
 
-  useAppBranchTaskFinishedPendingEventListener(
+  useAppBranchTaskFinishedEventRegisteredListener(
     useCallback(
       (
         {
-          appBranchTaskFinishedPendingEventController,
+          appBranchTaskFinishedEventInfo,
         },
       ) => {
         const {
           appId,
           appBranchId,
-          appBranchTaskInfo,
-        } = appBranchTaskFinishedPendingEventController;
+          appBranchTask: appBranchTaskInfo,
+        } = appBranchTaskFinishedEventInfo;
 
         if (
           appBranchTaskInfo.type === AppBranchTaskType.RepairTask
@@ -185,14 +185,14 @@ function RouteComponent() {
     ),
   );
 
-  useProtocolPendingRequestListener(
+  useProtocolRequestRegisteredListener(
     useCallback(
       async (
         {
-          protocolPendingRequestController,
+          protocolRequestInfo,
         },
       ) => {
-        const urlAsObject = new URL(protocolPendingRequestController.url);
+        const urlAsObject = new URL(protocolRequestInfo.url);
         console.log(urlAsObject);
 
         if (urlAsObject.href.startsWith(`${PROTOCOL_INFO.value!.id}://start-app-branch-process`)) {

@@ -311,96 +311,96 @@
   dependencies:
     "@types/node" "*"
 
-"@upsoft/electroy-app-foundation@1.5.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@upsoft/electroy-app-foundation/-/electroy-app-foundation-1.5.0.tgz#b93df573418449bd26f39f300a6dfbba170c9eea"
-  integrity sha512-myq4GtaIHpvaXe6I6G69IXZvUPGJKyGAf7T10+qopp6yA4m3a1obbNOsCMbTfl++Ny9JAnZibcIfsV4aO0Xc9g==
+"@upsoft/electroy-app-foundation@2.0.0-alpha.27":
+  version "2.0.0-alpha.27"
+  resolved "https://registry.yarnpkg.com/@upsoft/electroy-app-foundation/-/electroy-app-foundation-2.0.0-alpha.27.tgz#38227d20fdc11dea66bf294c9780ee199a5ea71e"
+  integrity sha512-A5fvv3gR2B5Jsq969qftVVbvxzt1SWTGSv0NK+Ng9wR3Ovqbg2luEdaENEaAPjfXZrlNibb03sg1vusergzTGA==
   dependencies:
-    "@upsoft/troy-foundation" "1.5.0"
-    "@upsoft/troy-native-foundation" "1.5.0"
+    "@upsoft/troy-foundation" "2.0.0-alpha.27"
+    "@upsoft/troy-native-foundation" "2.0.0-alpha.27"
 
-"@upsoft/electroy-app-runtime-package-dev-tools-base@1.5.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@upsoft/electroy-app-runtime-package-dev-tools-base/-/electroy-app-runtime-package-dev-tools-base-1.5.0.tgz#06cf0547efd7939313534e0b475efb6d44cc95d2"
-  integrity sha512-gvHF6QuQwTew38z4BynrAyrHGoWejS5sksjjAVK2FWNreZSGE5q+moRNLm1f4YQUdxGPFgNGvQjLfi92B42kZg==
+"@upsoft/electroy-app-runtime-package-dev-tools-base@2.0.0-alpha.27":
+  version "2.0.0-alpha.27"
+  resolved "https://registry.yarnpkg.com/@upsoft/electroy-app-runtime-package-dev-tools-base/-/electroy-app-runtime-package-dev-tools-base-2.0.0-alpha.27.tgz#67c1172819be492c500524db3a42e485b6c4c3a3"
+  integrity sha512-rXLdgY50v3aTOAZWyVUkipVgEQAV0ZI9yLD6+qKRCYEe89w4UZ0jnFRCDIvNKDCFClfoXtNXAq8HeM2eUYmRkA==
   dependencies:
     "@electron/get" "^2.0.0"
-    "@upsoft/electroy-app-foundation" "1.5.0"
-    "@upsoft/troy-dev-tool-base" "1.5.0"
-    "@upsoft/troy-foundation" "1.5.0"
+    "@upsoft/electroy-app-foundation" "2.0.0-alpha.27"
+    "@upsoft/troy-dev-tool-base" "2.0.0-alpha.27"
+    "@upsoft/troy-foundation" "2.0.0-alpha.27"
     chalk "^4.0.0"
     extract-zip "^2.0.0"
     is-running "^2.0.0"
     log-symbols "^4.0.0"
     ora "^5.0.0"
 
-"@upsoft/patchkit-api-foundation@1.5.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@upsoft/patchkit-api-foundation/-/patchkit-api-foundation-1.5.0.tgz#729776d128253f1a4cf7bfcc05488d0ff4a344ce"
-  integrity sha512-+KZBGryKzpLm9/OKQYUuxWUc9fRBv+tP4mvsjft4+kO66RE6omp1p9SyN2w3rnRpzvi8WI47RMadblqfNlkJcg==
+"@upsoft/patchkit-api-foundation@2.0.0-alpha.27":
+  version "2.0.0-alpha.27"
+  resolved "https://registry.yarnpkg.com/@upsoft/patchkit-api-foundation/-/patchkit-api-foundation-2.0.0-alpha.27.tgz#20ba7db45c07bbf23085758968519bfcc05681c7"
+  integrity sha512-6BEJQIbS0txhnQrz7V73HLGhAS9XTNDmEmGfdjtsf8Ge1oKrSPGnmkA16ZrGtz9DSSauD8b77Yo+G2lbUVjPcw==
   dependencies:
-    "@upsoft/troy-foundation" "1.5.0"
-    "@upsoft/troy-native-foundation" "1.5.0"
+    "@upsoft/troy-foundation" "2.0.0-alpha.27"
+    "@upsoft/troy-native-foundation" "2.0.0-alpha.27"
 
-"@upsoft/patchkit-basic-launcher-runtime-bundles@1.5.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@upsoft/patchkit-basic-launcher-runtime-bundles/-/patchkit-basic-launcher-runtime-bundles-1.5.0.tgz#31a5a5131ff1b559150c872b458375c79ee892d3"
-  integrity sha512-cSqq0c52/4BHQ6B2EOFtH3K+Cu7+azKFkkKtdmGSAF2FDFj/F7wVVPw0Ep5JAK9yH9XjDaSPbEZOLi1C39548Q==
+"@upsoft/patchkit-basic-launcher-runtime-bundles@2.0.0-alpha.27":
+  version "2.0.0-alpha.27"
+  resolved "https://registry.yarnpkg.com/@upsoft/patchkit-basic-launcher-runtime-bundles/-/patchkit-basic-launcher-runtime-bundles-2.0.0-alpha.27.tgz#f36d25c091c3953738bb2a35b07df67803d976b7"
+  integrity sha512-PFUsvlQyUXLZQiyAxYoOA/TUyxn7cOPUQek9OA5NjKxR1MFQh1DRxRNSXfp2JWgMmpJG6EbVDBSTzTfAbu2Uug==
 
-"@upsoft/patchkit-basic-launcher-runtime-package-dev-tools@1.5.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@upsoft/patchkit-basic-launcher-runtime-package-dev-tools/-/patchkit-basic-launcher-runtime-package-dev-tools-1.5.0.tgz#2f00aba3b88d60acf9a42df19db69d403616630c"
-  integrity sha512-bHjHcY5i2V9CAMu75/BCUARDn3E1TxJYP6ACwL8Z9HFbjWAO8VqO3dcKaxtlNryTo8R9pGTmQnisRZ+lWExyQQ==
+"@upsoft/patchkit-basic-launcher-runtime-package-dev-tools@2.0.0-alpha.27":
+  version "2.0.0-alpha.27"
+  resolved "https://registry.yarnpkg.com/@upsoft/patchkit-basic-launcher-runtime-package-dev-tools/-/patchkit-basic-launcher-runtime-package-dev-tools-2.0.0-alpha.27.tgz#a3bb1a2eda4a0eb7d1b42bb7ba45ef58111beea3"
+  integrity sha512-cSnYEcIT0A60nh/zv5ZREuB5bfX0JOn9qYO+VfNhbKUyomPIkNzCRb7PTRr9Ut1rbc7IZcjU87tUN2x54m+oEQ==
   dependencies:
-    "@upsoft/patchkit-basic-launcher-runtime-bundles" "1.5.0"
-    "@upsoft/patchkit-launcher-runtime-package-dev-tools-base" "1.5.0"
-    "@upsoft/troy-dev-tool-base" "1.5.0"
-    "@upsoft/troy-foundation" "1.5.0"
+    "@upsoft/patchkit-basic-launcher-runtime-bundles" "2.0.0-alpha.27"
+    "@upsoft/patchkit-launcher-runtime-package-dev-tools-base" "2.0.0-alpha.27"
+    "@upsoft/troy-dev-tool-base" "2.0.0-alpha.27"
+    "@upsoft/troy-foundation" "2.0.0-alpha.27"
 
-"@upsoft/patchkit-launcher-foundation@1.5.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@upsoft/patchkit-launcher-foundation/-/patchkit-launcher-foundation-1.5.0.tgz#b9639d12eba237391d79c9dfda433e3cf1cd16bf"
-  integrity sha512-7l3zoAZNPxh2Mjnun8T90UXmGOVaRXgtLkSfsv/v46oQxOuyPkmAyvVpTdHrk0RsCSBlx263yxdxVQllUXuRyA==
+"@upsoft/patchkit-launcher-foundation@2.0.0-alpha.27":
+  version "2.0.0-alpha.27"
+  resolved "https://registry.yarnpkg.com/@upsoft/patchkit-launcher-foundation/-/patchkit-launcher-foundation-2.0.0-alpha.27.tgz#1982acd3982bf1332295b23e9d0252998ffe05a4"
+  integrity sha512-ypCS5je88KVgL3R3D70fG1DnO+WDi+XAO9p2wgk08OITC+ej1jI/8x6ALjPSRAcAOpjyLf6zz79hDaXCw2BspA==
   dependencies:
-    "@upsoft/patchkit-api-foundation" "1.5.0"
-    "@upsoft/troy-foundation" "1.5.0"
-    "@upsoft/troy-native-foundation" "1.5.0"
+    "@upsoft/patchkit-api-foundation" "2.0.0-alpha.27"
+    "@upsoft/troy-foundation" "2.0.0-alpha.27"
+    "@upsoft/troy-native-foundation" "2.0.0-alpha.27"
 
-"@upsoft/patchkit-launcher-runtime-api-foundation@1.5.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@upsoft/patchkit-launcher-runtime-api-foundation/-/patchkit-launcher-runtime-api-foundation-1.5.0.tgz#7513c126fc39c934be01b8aa5ff03ed4192a9be5"
-  integrity sha512-KSmAPtmsmI1GC6xoUnmq5KLqCgY6k70XZ+wBxrAkZLf+o+JBQAyCo7LBd1tlTj1Jj/Fzj235pDhocDoCDAf+QQ==
+"@upsoft/patchkit-launcher-runtime-api-foundation@2.0.0-alpha.27":
+  version "2.0.0-alpha.27"
+  resolved "https://registry.yarnpkg.com/@upsoft/patchkit-launcher-runtime-api-foundation/-/patchkit-launcher-runtime-api-foundation-2.0.0-alpha.27.tgz#048d6afe660e24e67b46638ff31b9683f168f146"
+  integrity sha512-DEDX1md1tHE59pxnRs4JN0BAOVCP7k+Y3B92TbsBSd6xv7okb5WxzZjXZDf8PX7vkaMOd7/viKAu/3Qid4beLw==
   dependencies:
-    "@upsoft/patchkit-api-foundation" "1.5.0"
-    "@upsoft/patchkit-launcher-foundation" "1.5.0"
-    "@upsoft/troy-foundation" "1.5.0"
-    "@upsoft/troy-native-foundation" "1.5.0"
+    "@upsoft/patchkit-api-foundation" "2.0.0-alpha.27"
+    "@upsoft/patchkit-launcher-foundation" "2.0.0-alpha.27"
+    "@upsoft/troy-foundation" "2.0.0-alpha.27"
+    "@upsoft/troy-native-foundation" "2.0.0-alpha.27"
 
-"@upsoft/patchkit-launcher-runtime-foundation@1.5.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@upsoft/patchkit-launcher-runtime-foundation/-/patchkit-launcher-runtime-foundation-1.5.0.tgz#2d608eecc20c217c07db852f4216c32afaf7e862"
-  integrity sha512-plM7kDznsvVRz9MMazMTOi2ZbjaXODxOr5nxIJeJWzbih2s5MnH9xxFA/sOy78TSdkP37gt2q0wrNRHqnhdo3g==
+"@upsoft/patchkit-launcher-runtime-foundation@2.0.0-alpha.27":
+  version "2.0.0-alpha.27"
+  resolved "https://registry.yarnpkg.com/@upsoft/patchkit-launcher-runtime-foundation/-/patchkit-launcher-runtime-foundation-2.0.0-alpha.27.tgz#2ab19c4809d57ebd3ad24bcbfdfd0eb5a43f43a7"
+  integrity sha512-fuukO36HTgczNXXbOPrNmdUgiG4AULImInTRG14Fc9oUg3u5jOarfkOkd1pmUoQ3ZU9e3dHuIqBgoTDbfnQtvQ==
   dependencies:
-    "@upsoft/patchkit-launcher-foundation" "1.5.0"
-    "@upsoft/patchkit-launcher-runtime-api-foundation" "1.5.0"
-    "@upsoft/troy-foundation" "1.5.0"
+    "@upsoft/patchkit-launcher-foundation" "2.0.0-alpha.27"
+    "@upsoft/patchkit-launcher-runtime-api-foundation" "2.0.0-alpha.27"
+    "@upsoft/troy-foundation" "2.0.0-alpha.27"
 
-"@upsoft/patchkit-launcher-runtime-package-dev-tools-base@1.5.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@upsoft/patchkit-launcher-runtime-package-dev-tools-base/-/patchkit-launcher-runtime-package-dev-tools-base-1.5.0.tgz#87c8eed648b05959a328b6fe1ec493ee57a970e4"
-  integrity sha512-1EZt/yFRzzsYbOC+q2fp4x4Tz+LHqNa3WzmQAI80Z9eoW6a5LzoDVzHN223vgFp0Nvz6UQTwWg9XVH0yAqB8Ew==
+"@upsoft/patchkit-launcher-runtime-package-dev-tools-base@2.0.0-alpha.27":
+  version "2.0.0-alpha.27"
+  resolved "https://registry.yarnpkg.com/@upsoft/patchkit-launcher-runtime-package-dev-tools-base/-/patchkit-launcher-runtime-package-dev-tools-base-2.0.0-alpha.27.tgz#f621d79c55776fd9171fd6fdc44696e0208cb741"
+  integrity sha512-qDCdtEzy220mz/5LReHw2sNmRUQgZ1e+gvAAE9CuDQEBZgf/XLJVtyAJ8WmEEUDNeH2raQr5ubhdYAljV93KSQ==
   dependencies:
     "@electron/get" "^2.0.0"
     "@electron/notarize" "^2.0.0"
-    "@upsoft/electroy-app-foundation" "1.5.0"
-    "@upsoft/electroy-app-runtime-package-dev-tools-base" "1.5.0"
-    "@upsoft/patchkit-launcher-foundation" "1.5.0"
-    "@upsoft/patchkit-launcher-runtime-foundation" "1.5.0"
-    "@upsoft/troy-dev-tool-base" "1.5.0"
-    "@upsoft/troy-foundation" "1.5.0"
-    "@upsoft/troy-json" "1.5.0"
-    "@upsoft/troy-native-foundation" "1.5.0"
-    "@upsoft/troy-operating-system-native-client" "1.5.0"
+    "@upsoft/electroy-app-foundation" "2.0.0-alpha.27"
+    "@upsoft/electroy-app-runtime-package-dev-tools-base" "2.0.0-alpha.27"
+    "@upsoft/patchkit-launcher-foundation" "2.0.0-alpha.27"
+    "@upsoft/patchkit-launcher-runtime-foundation" "2.0.0-alpha.27"
+    "@upsoft/troy-dev-tool-base" "2.0.0-alpha.27"
+    "@upsoft/troy-foundation" "2.0.0-alpha.27"
+    "@upsoft/troy-json" "2.0.0-alpha.27"
+    "@upsoft/troy-native-foundation" "2.0.0-alpha.27"
+    "@upsoft/troy-operating-system-native-client" "2.0.0-alpha.27"
     chalk "^4.0.0"
     chokidar "^3.0.0"
     deepmerge "^4.0.0"
@@ -414,41 +414,41 @@
     type-fest "^4.0.0"
     typia "^6.0.0"
 
-"@upsoft/troy-dev-tool-base@1.5.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@upsoft/troy-dev-tool-base/-/troy-dev-tool-base-1.5.0.tgz#e6801ab38c1a02e1c9f9ae061de6995a71362772"
-  integrity sha512-ZgNFsfmThVEyMGDz5+oqcYdBdweYvsuOqZAbEutjl7O8WFMG7oSHHu27DAG3dI2bCgGY0WDsjvmcUU0SErxeqQ==
+"@upsoft/troy-dev-tool-base@2.0.0-alpha.27":
+  version "2.0.0-alpha.27"
+  resolved "https://registry.yarnpkg.com/@upsoft/troy-dev-tool-base/-/troy-dev-tool-base-2.0.0-alpha.27.tgz#e7352c8acd0fa3489d5bd7d88de0e78c03d9f949"
+  integrity sha512-u39OuqKg6+0b2pTxTUkhmJpuLJTNRlG6jvEzvCNX3OPzoV8717SWrcAgMA8GCwKLkCcY8It8Znsria04DjNGRQ==
   dependencies:
-    "@upsoft/troy-foundation" "1.5.0"
+    "@upsoft/troy-foundation" "2.0.0-alpha.27"
     chalk "^4.0.0"
     command-line-args "^5.0.0"
 
-"@upsoft/troy-foundation@1.5.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@upsoft/troy-foundation/-/troy-foundation-1.5.0.tgz#2045015e6c44a5c98ee0d9d3b8629cf03abdc5f3"
-  integrity sha512-WZD+f9bKWIqpmYkpNeiq0jLhLGqQq8yYD6/ETrBNPxzo7Ch+892LkeJif/dslyejQKC77q6L3Rc6xBDjEiC+9Q==
+"@upsoft/troy-foundation@2.0.0-alpha.27":
+  version "2.0.0-alpha.27"
+  resolved "https://registry.yarnpkg.com/@upsoft/troy-foundation/-/troy-foundation-2.0.0-alpha.27.tgz#003b8c47aed88c21363aa2ac87e3c74c37732dc6"
+  integrity sha512-L02c1pFDvVRYm1yB2447mUZeFbuB/Lki/fEol40i3Lx7YYufsgDr6qnKekBXalFjFSuNdeohzooU6dTX2/6PfA==
 
-"@upsoft/troy-json@1.5.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@upsoft/troy-json/-/troy-json-1.5.0.tgz#e53c8918739d322a4ef22c700942e09ff25485b7"
-  integrity sha512-dUIx/kq9SxSW3h/BQ3JI20+X+FV43lFJ1utjTU5eqsw167CPPKdCLuzU7YhMiFvvETRPN123GNn12zI039Wwug==
+"@upsoft/troy-json@2.0.0-alpha.27":
+  version "2.0.0-alpha.27"
+  resolved "https://registry.yarnpkg.com/@upsoft/troy-json/-/troy-json-2.0.0-alpha.27.tgz#4f96970405dbe4ff0a1ee54abcdcbe4b33387317"
+  integrity sha512-4cCETPjm9lmb/zWZ/u24ANhDz7jd6vUuYf77ZfrK0JIVMWafiq57Loplh/M+eW7iTkTngggcG/aVXAwQiS5bmQ==
   dependencies:
-    "@upsoft/troy-foundation" "1.5.0"
+    "@upsoft/troy-foundation" "2.0.0-alpha.27"
 
-"@upsoft/troy-native-foundation@1.5.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@upsoft/troy-native-foundation/-/troy-native-foundation-1.5.0.tgz#398ac96b575dadff3b50873ec155e076df2ddfc0"
-  integrity sha512-3z6KtNtuW901DAdi8wi3lHcaGdmKiJG6ROYzkCzLFhbHKFC4O6PGunoweFGSCIIYRo69kb25YHi+iS33f05aZg==
+"@upsoft/troy-native-foundation@2.0.0-alpha.27":
+  version "2.0.0-alpha.27"
+  resolved "https://registry.yarnpkg.com/@upsoft/troy-native-foundation/-/troy-native-foundation-2.0.0-alpha.27.tgz#2a1dc3fafa6e55dcef046acc21dc182b40195f72"
+  integrity sha512-yUbgLgjtEn0jzsjYPf5pslp3UJnez9/oQqVCnraRMouY7d5MiLaual4LLTBA+efCBIwYP6JPN2hpf2O+b/qrfQ==
   dependencies:
-    "@upsoft/troy-foundation" "1.5.0"
+    "@upsoft/troy-foundation" "2.0.0-alpha.27"
 
-"@upsoft/troy-operating-system-native-client@1.5.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@upsoft/troy-operating-system-native-client/-/troy-operating-system-native-client-1.5.0.tgz#2685c8e8cf304c1102318286c43ef7adc35067c0"
-  integrity sha512-Xu4lmkvV/RQpMm7RDfS0Cs0yHtORs16xMtLTc806fIJ0fveMs9TLHWIDbMep/0Qie5sUypOg3OpqtQA7xQNlyA==
+"@upsoft/troy-operating-system-native-client@2.0.0-alpha.27":
+  version "2.0.0-alpha.27"
+  resolved "https://registry.yarnpkg.com/@upsoft/troy-operating-system-native-client/-/troy-operating-system-native-client-2.0.0-alpha.27.tgz#948198c42ef984e8154db8c8f22cb38a73469e3c"
+  integrity sha512-lo/REup34eSqhxars3QigkXmB0DwgJmm6e++PLBeQ+jXlPtjNluhLBK0wWDI9P7jVlpsE45IJkvRkSDp5tWH3w==
   dependencies:
-    "@upsoft/troy-foundation" "1.5.0"
-    "@upsoft/troy-native-foundation" "1.5.0"
+    "@upsoft/troy-foundation" "2.0.0-alpha.27"
+    "@upsoft/troy-native-foundation" "2.0.0-alpha.27"
 
 "@xmldom/xmldom@^0.8.8":
   version "0.8.10"

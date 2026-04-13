@@ -5,10 +5,10 @@ import {
   AppInfo,
   displaySelectAppBranchRootDirDialog,
   focusFileSystemEntryInFileExplorer,
-  useAppBranchInfo,
-  useAppInfo,
-  useAppRegisteredBranchesState,
-  useAppSecondaryBranchesInfoSuspenseValidQuery,
+  useAppBranchInfoSuspenseQuery,
+  useAppInfoSuspenseQuery,
+  useAppRegisteredBranchesStateSuspenseQuery,
+  useAppSecondaryBranchesInfoSuspenseQuery,
 } from "@upsoft/patchkit-launcher-runtime-api-react-theme-client";
 import {
   AppBranchController,
@@ -469,20 +469,32 @@ export function AppSettingsDialogContent(
     appId: string;
   },
 ) {
-  const appInfo = useAppInfo({
+  const { data: appInfoData } = useAppInfoSuspenseQuery({
     appId,
   });
+  if (!appInfoData.isValid) {
+    throw new Error(`Failed to fetch app info: ${appInfoData.errorTypeName}`);
+  }
+  const appInfo = appInfoData.appInfo;
 
-  const appRegisteredBranchesState = useAppRegisteredBranchesState({
+  const { data: appRegisteredBranchesStateData } = useAppRegisteredBranchesStateSuspenseQuery({
     appId,
   });
+  if (!appRegisteredBranchesStateData.isValid) {
+    throw new Error(`Failed to fetch registered branches state: ${appRegisteredBranchesStateData.errorTypeName}`);
+  }
+  const appRegisteredBranchesState = appRegisteredBranchesStateData.appRegisteredBranchesState;
 
-  const appMainBranchInfo = useAppBranchInfo({
+  const { data: appMainBranchInfoData } = useAppBranchInfoSuspenseQuery({
     appId,
     appBranchId: APP_MAIN_BRANCH_ID.value,
   });
+  if (!appMainBranchInfoData.isValid) {
+    throw new Error(`Failed to fetch main branch info: ${appMainBranchInfoData.errorTypeName}`);
+  }
+  const appMainBranchInfo = appMainBranchInfoData.appBranchInfo;
 
-  const appSecondaryBranchesInfoQuery = useAppSecondaryBranchesInfoSuspenseValidQuery({
+  const appSecondaryBranchesInfoQuery = useAppSecondaryBranchesInfoSuspenseQuery({
     appId,
     pageLimit: 10,
   });
@@ -501,7 +513,7 @@ export function AppSettingsDialogContent(
 
   const appSecondaryBranchesInfo = Object.fromEntries(
     appSecondaryBranchesInfoQuery.pages.flatMap(
-      x => Object.entries(x.data.appSecondaryBranchesInfo),
+      x => x.data.isValid ? Object.entries(x.data.appSecondaryBranchesInfo) : [],
     ),
   );
 
@@ -511,10 +523,14 @@ export function AppSettingsDialogContent(
 
   const setAppDefaultBranchIdInfo = useSetAppDefaultBranchIdInfo();
 
-  const appDefaultBranchInfo = useAppBranchInfo({
+  const { data: appDefaultBranchInfoData } = useAppBranchInfoSuspenseQuery({
     appId,
     appBranchId: appDefaultBranchIdInfo.defaultBranchId,
   });
+  if (!appDefaultBranchInfoData.isValid) {
+    throw new Error(`Failed to fetch default branch info: ${appDefaultBranchInfoData.errorTypeName}`);
+  }
+  const appDefaultBranchInfo = appDefaultBranchInfoData.appBranchInfo;
 
   const appDefaultBranchController = useAppBranchSuspenseController({
     appId,

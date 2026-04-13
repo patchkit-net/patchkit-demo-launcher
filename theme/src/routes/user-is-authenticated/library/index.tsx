@@ -5,12 +5,12 @@ import {
 import {
   APP_MAIN_BRANCH_ID,
   AppInfo,
-  useAppsRegisteredBranchesState,
+  useAppsRegisteredBranchesStateSuspenseQuery,
 } from "@upsoft/patchkit-launcher-runtime-api-react-theme-client";
 import {
-  useAppBranchInfo,
+  useAppBranchInfoSuspenseQuery,
   useAppBranchLatestVersionIdQuery,
-  useAppsInfoSuspenseValidQuery,
+  useAppsInfoSuspenseQuery,
 } from "@upsoft/patchkit-launcher-runtime-api-react-theme-client";
 import {
   useAppBranchSuspenseController,
@@ -123,10 +123,14 @@ export function AppCard(
 
   const setAppFavouriteInfo = useSetAppIsFavouriteInfo();
 
-  const appDefaultBranchInfo = useAppBranchInfo({
+  const { data: appDefaultBranchInfoData } = useAppBranchInfoSuspenseQuery({
     appId,
     appBranchId: appDefaultBranchId,
   });
+  if (!appDefaultBranchInfoData.isValid) {
+    throw new Error(`Failed to fetch branch info: ${appDefaultBranchInfoData.errorTypeName}`);
+  }
+  const appDefaultBranchInfo = appDefaultBranchInfoData.appBranchInfo;
 
   const appDefaultBranchController = useAppBranchSuspenseController({
     appId,
@@ -308,7 +312,7 @@ export function AppCard(
 }
 
 export function RouteComponent() {
-  const appsInfoQuery = useAppsInfoSuspenseValidQuery({
+  const appsInfoQuery = useAppsInfoSuspenseQuery({
     pageLimit: 10,
   });
 
@@ -324,7 +328,11 @@ export function RouteComponent() {
     ],
   );
 
-  const appsRegisteredBranchesState = useAppsRegisteredBranchesState({});
+  const { data: appsRegisteredBranchesStateData } = useAppsRegisteredBranchesStateSuspenseQuery({});
+  if (!appsRegisteredBranchesStateData.isValid) {
+    throw new Error(`Failed to fetch registered branches state: ${appsRegisteredBranchesStateData.errorTypeName}`);
+  }
+  const appsRegisteredBranchesState = appsRegisteredBranchesStateData.appsRegisteredBranchesState;
 
   const [appsFilteringUserMode, setAppsFilteringUserMode] = useState<AppsFilteringUserMode>(AppsFilteringUserMode.Disabled);
 
@@ -357,7 +365,7 @@ export function RouteComponent() {
   );
 
   const appsInfo = Object.fromEntries(
-    appsInfoQuery.pages.flatMap(x => Object.entries(x.data.appsInfo)),
+    appsInfoQuery.pages.flatMap(x => x.data.isValid ? Object.entries(x.data.appsInfo) : []),
   );
 
   const filteredAppsInfo = useMemo<typeof appsInfo>(

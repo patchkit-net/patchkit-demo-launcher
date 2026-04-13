@@ -12,10 +12,10 @@ import {
   AppBranchStartRepairTaskMutation,
   AppBranchStartUpdateTaskMutation,
   AppBranchUpdateTaskCancelMutation,
-  useAppBranchInfo,
-  useAppInfo,
-  useAppScreenshotsInfoSuspenseValidQuery,
-  useAppVideosInfoSuspenseValidQuery,
+  useAppBranchInfoSuspenseQuery,
+  useAppInfoSuspenseQuery,
+  useAppScreenshotsInfoSuspenseQuery,
+  useAppVideosInfoSuspenseQuery,
 } from "@upsoft/patchkit-launcher-runtime-api-react-theme-client";
 import {
   ChartLineIcon,
@@ -371,16 +371,20 @@ function RouteComponent() {
 
   const setIsAppFavouriteInfo = useSetAppIsFavouriteInfo();
 
-  const appInfo = useAppInfo({
+  const { data: appInfoData } = useAppInfoSuspenseQuery({
     appId,
   });
+  if (!appInfoData.isValid) {
+    throw new Error(`Failed to fetch app info: ${appInfoData.errorTypeName}`);
+  }
+  const appInfo = appInfoData.appInfo;
 
-  const appScreenshotsInfoQuery = useAppScreenshotsInfoSuspenseValidQuery({
+  const appScreenshotsInfoQuery = useAppScreenshotsInfoSuspenseQuery({
     appId,
     pageLimit: 10,
   });
 
-  const appVideosInfoQuery = useAppVideosInfoSuspenseValidQuery({
+  const appVideosInfoQuery = useAppVideosInfoSuspenseQuery({
     appId,
     pageLimit: 10,
   });
@@ -413,13 +417,13 @@ function RouteComponent() {
     () => {
       return Object.fromEntries(
         [
-          ...appScreenshotsInfoQuery.pages.flatMap(x => Object.entries(x.data.appScreenshotsInfo))
+          ...appScreenshotsInfoQuery.pages.flatMap(x => x.data.isValid ? Object.entries(x.data.appScreenshotsInfo) : [])
             .map(
               ([appScreenshotId, appScreenshotInfo]) => {
                 return [appScreenshotId, { type: "screenshot", ...appScreenshotInfo }];
               },
             ) as [string, ({ type: "screenshot" } & AppScreenshotInfo) | ({ type: "video" } & AppVideoInfo)][],
-          ...appVideosInfoQuery.pages.flatMap(x => Object.entries(x.data.appVideosInfo))
+          ...appVideosInfoQuery.pages.flatMap(x => x.data.isValid ? Object.entries(x.data.appVideosInfo) : [])
             .map(
               ([appVideoId, appVideoInfo]) => {
                 return [appVideoId, { type: "video", ...appVideoInfo }];
@@ -439,10 +443,14 @@ function RouteComponent() {
     appId,
   }).defaultBranchId;
 
-  const appDefaultBranchInfo = useAppBranchInfo({
+  const { data: appDefaultBranchInfoData } = useAppBranchInfoSuspenseQuery({
     appId,
     appBranchId: appDefaultBranchId,
   });
+  if (!appDefaultBranchInfoData.isValid) {
+    throw new Error(`Failed to fetch branch info: ${appDefaultBranchInfoData.errorTypeName}`);
+  }
+  const appDefaultBranchInfo = appDefaultBranchInfoData.appBranchInfo;
 
   const appDefaultBranchController = useAppBranchSuspenseController({
     appId,

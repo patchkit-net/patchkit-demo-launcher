@@ -2,11 +2,11 @@ import { useMutation } from "@tanstack/react-query";
 import {
   callNodeFetch,
   configureOauth2LoopbackDefaultServer,
-  dismissOauth2LoopbackPendingRequest,
-  dismissProtocolPendingRequest,
-  fetchOauth2LoopbackPendingRequestsInfo,
-  fetchProtocolPendingRequestsInfo,
 } from "@upsoft/patchkit-launcher-runtime-api-react-theme-client";
+import {
+  useOauth2LoopbackRequestRegisteredListener,
+  useProtocolRequestRegisteredListener,
+} from "@upsoft/patchkit-launcher-runtime-api-react-theme-extras";
 import * as CryptoJS from "crypto-js";
 import * as FirebaseAuth from "firebase/auth";
 import { default as Oauth } from "oauth-1.0a";
@@ -44,90 +44,6 @@ const FIREBASE_TWITTER_OAUTH = new Oauth({
     return CryptoJS.HmacSHA1(message, key).toString(CryptoJS.enc.Base64); ;
   },
 });
-
-type CheckOauth2LoopbackPendingRequests = (
-  {
-  }: {
-    oauth2LoopbackPendingRequestsInfo: Awaited<ReturnType<typeof fetchOauth2LoopbackPendingRequestsInfo>>;
-  }
-) => Promise<void>;
-
-function useOauth2LoopbackPendingRequestsHandler(
-  checkOauth2LoopbackPendingRequests: CheckOauth2LoopbackPendingRequests,
-) {
-  const [shouldCheck, setShouldCheck] = useState<boolean>(true);
-
-  useEffect(
-    () => {
-      if (!shouldCheck) {
-        return;
-      }
-
-      setShouldCheck(false);
-
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      (async () => {
-        try {
-          const oauth2LoopbackPendingRequestsInfo = await fetchOauth2LoopbackPendingRequestsInfo({});
-
-          await checkOauth2LoopbackPendingRequests({
-            oauth2LoopbackPendingRequestsInfo,
-          });
-        } finally {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-
-          setShouldCheck(true);
-        }
-      })();
-    },
-    [
-      shouldCheck,
-      checkOauth2LoopbackPendingRequests,
-    ],
-  );
-}
-
-type CheckProtocolPendingRequests = (
-  {
-  }: {
-    protocolPendingRequestsInfo: Awaited<ReturnType<typeof fetchProtocolPendingRequestsInfo>>;
-  }
-) => Promise<void>;
-
-function useProtocolPendingRequestsHandler(
-  checkProtocolPendingRequests: CheckProtocolPendingRequests,
-) {
-  const [shouldCheck, setShouldCheck] = useState<boolean>(true);
-
-  useEffect(
-    () => {
-      if (!shouldCheck) {
-        return;
-      }
-
-      setShouldCheck(false);
-
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      (async () => {
-        try {
-          const protocolPendingRequestsInfo = await fetchProtocolPendingRequestsInfo({});
-
-          await checkProtocolPendingRequests({
-            protocolPendingRequestsInfo,
-          });
-        } finally {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-
-          setShouldCheck(true);
-        }
-      })();
-    },
-    [
-      shouldCheck,
-      checkProtocolPendingRequests,
-    ],
-  );
-}
 
 interface UserContextValue {
   userAuth: UserAuth | undefined;
@@ -288,22 +204,18 @@ export function UserContextProvider({
     },
   });
 
-  const checkOauth2LoopbackPendingRequests: CheckOauth2LoopbackPendingRequests = useCallback(
-    async (
-      {
-        oauth2LoopbackPendingRequestsInfo,
-      },
-    ) => {
-      for (const [oauth2LoopbackPendingRequestId, oauth2LoopbackPendingRequestInfo] of Object.entries(oauth2LoopbackPendingRequestsInfo)) {
+  useOauth2LoopbackRequestRegisteredListener(
+    useCallback(
+      async (
+        {
+          oauth2LoopbackRequestInfo,
+        },
+      ) => {
         try {
-          const oauth2LoopbackPendingRequestUrlAsObject = new URL(oauth2LoopbackPendingRequestInfo.url);
+          const oauth2LoopbackRequestUrlAsObject = new URL(oauth2LoopbackRequestInfo.url);
 
-          if (oauth2LoopbackPendingRequestUrlAsObject.pathname.includes(`google-auth`)) {
-            await dismissOauth2LoopbackPendingRequest({
-              oauth2LoopbackPendingRequestId,
-            });
-
-            const firebaseUserGoogleOauth2Code = oauth2LoopbackPendingRequestUrlAsObject.searchParams.get(`code`);
+          if (oauth2LoopbackRequestUrlAsObject.pathname.includes(`google-auth`)) {
+            const firebaseUserGoogleOauth2Code = oauth2LoopbackRequestUrlAsObject.searchParams.get(`code`);
 
             if (firebaseUserGoogleOauth2Code !== null && signInFirebaseUserWithGoogleTaskState !== undefined) {
               const tokenEndpointResponse = await fetch(
@@ -342,32 +254,26 @@ export function UserContextProvider({
         } catch (e) {
           console.error(e);
         }
-      }
-    },
-    [
-      signInFirebaseUserWithGoogleTaskState,
-    ],
+      },
+      [
+        signInFirebaseUserWithGoogleTaskState,
+      ],
+    ),
   );
 
-  useOauth2LoopbackPendingRequestsHandler(checkOauth2LoopbackPendingRequests);
-
-  const checkProtocolPendingRequests: CheckProtocolPendingRequests = useCallback(
-    async (
-      {
-        protocolPendingRequestsInfo,
-      },
-    ) => {
-      for (const [protocolPendingRequestId, protocolPendingRequestInfo] of Object.entries(protocolPendingRequestsInfo)) {
+  useProtocolRequestRegisteredListener(
+    useCallback(
+      async (
+        {
+          protocolRequestInfo,
+        },
+      ) => {
         try {
-          const protocolPendingRequestUrlAsObject = new URL(protocolPendingRequestInfo.url);
+          const protocolRequestUrlAsObject = new URL(protocolRequestInfo.url);
 
-          if (protocolPendingRequestUrlAsObject.pathname.includes(`twitter-auth`)) {
-            await dismissProtocolPendingRequest({
-              protocolPendingRequestId,
-            });
-
-            const firebaseUserTwitterOauthToken = protocolPendingRequestUrlAsObject.searchParams.get(`oauth_token`);
-            const firebaseUserTwitterOauthVerifier = protocolPendingRequestUrlAsObject.searchParams.get(`oauth_verifier`);
+          if (protocolRequestUrlAsObject.pathname.includes(`twitter-auth`)) {
+            const firebaseUserTwitterOauthToken = protocolRequestUrlAsObject.searchParams.get(`oauth_token`);
+            const firebaseUserTwitterOauthVerifier = protocolRequestUrlAsObject.searchParams.get(`oauth_verifier`);
 
             if (firebaseUserTwitterOauthToken !== null && firebaseUserTwitterOauthVerifier !== null) {
               let accessTokenEndpointRequestUrl = `https://api.x.com/oauth/access_token?`;
@@ -417,13 +323,11 @@ export function UserContextProvider({
         } catch (e) {
           console.error(e);
         }
-      }
-    },
-    [
-    ],
+      },
+      [
+      ],
+    ),
   );
-
-  useProtocolPendingRequestsHandler(checkProtocolPendingRequests);
 
   const signOutUserMutation: UserContextValue["signOutUserMutation"] = useMutation({
     mutationFn: async () => {
