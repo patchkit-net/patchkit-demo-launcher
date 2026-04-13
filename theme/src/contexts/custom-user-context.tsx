@@ -219,7 +219,7 @@ export function UserContextProvider({
 
   const startSignInUserWithGoogleTaskMutation: UserContextValue["startSignInUserWithGoogleTaskMutation"] = useMutation({
     mutationFn: async () => {
-      // TODO:
+      // Not applicable in mock auth mode. See firebase-user-context.tsx for a real OAuth2 implementation.
     },
   });
 
