@@ -71,6 +71,15 @@ export const Route = createFileRoute(
   pendingComponent: SpinnerLayout,
 });
 
+function isYouTubeUrl(url: string): boolean {
+  return /youtube\.com|youtu\.be/.test(url);
+}
+
+function getYouTubeEmbedUrl(url: string): string {
+  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?\s]+)/);
+  return match ? `https://www.youtube-nocookie.com/embed/${match[1]}` : url;
+}
+
 function AppNotRegisteredBranchMenu(
   {
     appInfo,
@@ -536,7 +545,9 @@ function RouteComponent() {
                                   </DialogContent>
                                 </Dialog>
                               )
-                            : <video src={appMediaInfo.url} className="h-auto w-full rounded-lg border-2" controls />
+                            : isYouTubeUrl(appMediaInfo.url)
+                              ? <iframe src={getYouTubeEmbedUrl(appMediaInfo.url)} className="aspect-video w-full rounded-lg border-2" allowFullScreen />
+                              : <video src={appMediaInfo.url} className="h-auto w-full rounded-lg border-2" controls />
                         }
                         <TypographyMuted className="text-center">
                           {appMediaInfo.description}
