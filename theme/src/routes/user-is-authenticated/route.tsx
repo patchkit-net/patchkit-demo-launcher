@@ -17,7 +17,7 @@ import {
   AppBranchRootDirPermissionsAreInsufficient,
   AppBranchTaskType,
   AppBranchUpdateTaskHasBeenCancelled,
-  ID,
+  PROTOCOL_INFO,
   startAppBranchProcess,
   startAppBranchRepairTask,
   startAppBranchUpdateTask,
@@ -112,8 +112,8 @@ function RouteComponent() {
         const {
           appId,
           appBranchId,
-          appBranchTask: appBranchTaskInfo,
-        } = appBranchTaskFinishedPendingEventController.info;
+          appBranchTaskInfo,
+        } = appBranchTaskFinishedPendingEventController;
 
         if (
           appBranchTaskInfo.type === AppBranchTaskType.RepairTask
@@ -192,10 +192,10 @@ function RouteComponent() {
           protocolPendingRequestController,
         },
       ) => {
-        const urlAsObject = new URL(protocolPendingRequestController.info.url);
+        const urlAsObject = new URL(protocolPendingRequestController.url);
         console.log(urlAsObject);
 
-        if (urlAsObject.href.startsWith(`${ID.value}://start-app-branch-process`)) {
+        if (urlAsObject.href.startsWith(`${PROTOCOL_INFO.value!.id}://start-app-branch-process`)) {
           const appId = urlAsObject.searchParams.get("appId");
           const appBranchId = urlAsObject.searchParams.get("appBranchId");
 
