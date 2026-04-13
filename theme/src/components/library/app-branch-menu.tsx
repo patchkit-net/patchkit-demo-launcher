@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from "@tanstack/react-router";
+import { useSetIsDownloadsPanelOpen } from "@/lib/stores/downloads-panel-store";
 import {
   AppBranchInfo,
   AppBranchRepairTaskCancelMutation,
@@ -42,7 +42,8 @@ function AppNotRegisteredBranchMenu(
     <Dialog>
       <DialogTrigger asChild>
         <Button
-          className="w-48 bg-blue-500 text-white hover:bg-blue-400 hover:text-white dark:bg-blue-600 dark:hover:bg-blue-700"
+          className="w-48"
+          variant="outline"
           disabled={appBranchController.isAnyMutationPending}
         >
           Install
@@ -66,8 +67,7 @@ function AppRegisteredBranchOngoingDataTaskMenu(
     appBranchOngoingDataTaskCancelMutation: AppBranchUpdateTaskCancelMutation | AppBranchRepairTaskCancelMutation;
   },
 ) {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const setIsDownloadsPanelOpen = useSetIsDownloadsPanelOpen();
 
   return (
     <div className="grid w-96 grid-cols-[auto_1fr_auto] items-center gap-6 rounded-lg border bg-card px-4 py-2">
@@ -75,15 +75,7 @@ function AppRegisteredBranchOngoingDataTaskMenu(
         variant="outline"
         size="icon"
         disabled={appBranchOngoingDataTaskCancelMutation.status === `pending`}
-        onClick={async () => {
-          await navigate({
-            to: location.pathname,
-            search: prev => ({
-              ...prev,
-              isAppDownloadsPanelOpen: true,
-            }),
-          });
-        }}
+        onClick={() => { setIsDownloadsPanelOpen(true); }}
       >
         <ChartLineIcon className="size-5" />
       </Button>
@@ -159,26 +151,25 @@ function AppRegisteredBranchFailedDataTaskMenu(
 function AppRegisteredBranchMenu(
   {
     appBranchController,
+    isUpdateAvailable,
   }: {
     appBranchController: AppRegisteredBranchController;
+    isUpdateAvailable?: boolean;
   },
 ) {
   if (appBranchController.ongoingTask !== undefined) {
-    if (
-      appBranchController.ongoingTask.type === AppBranchTaskType.UpdateTask
-      || appBranchController.ongoingTask.type === AppBranchTaskType.RepairTask
-    ) {
+    const ongoingTask = appBranchController.ongoingTask;
+    const isDataTask = ongoingTask.type === AppBranchTaskType.UpdateTask || ongoingTask.type === AppBranchTaskType.RepairTask;
+
+    if (isDataTask) {
+      const progressPercentage = ongoingTask.progress === undefined || ongoingTask.progress.writeTask.totalBytesCount === 0
+        ? 0
+        : ongoingTask.progress.writeTask.processedBytesCount / ongoingTask.progress.writeTask.totalBytesCount;
+
       return (
         <AppRegisteredBranchOngoingDataTaskMenu
-          appBranchOngoingDataTaskProgressPercentage={
-            appBranchController.ongoingTask.progress === undefined || appBranchController.ongoingTask.progress.writeTask.totalBytesCount === 0
-              ? 0
-              : (
-                  appBranchController.ongoingTask.progress.writeTask.processedBytesCount
-                  / appBranchController.ongoingTask.progress.writeTask.totalBytesCount
-                )
-          }
-          appBranchOngoingDataTaskCancelMutation={appBranchController.ongoingTask.cancelMutation}
+          appBranchOngoingDataTaskProgressPercentage={progressPercentage}
+          appBranchOngoingDataTaskCancelMutation={ongoingTask.cancelMutation}
         />
       );
     }
@@ -190,42 +181,23 @@ function AppRegisteredBranchMenu(
 
   if (appBranchController.installedVersionId === undefined) {
     if (appBranchController.lastFailedDataTask !== undefined) {
-      switch (appBranchController.lastFailedDataTask.type) {
-        case AppBranchTaskType.UpdateTask: {
-          return (
-            <AppRegisteredBranchFailedDataTaskMenu
-              appBranchFailedDataTaskProgressPercentage={
-                appBranchController.lastFailedDataTask.progress === undefined || appBranchController.lastFailedDataTask.progress.writeTask.totalBytesCount === 0
-                  ? 0
-                  : (
-                      appBranchController.lastFailedDataTask.progress.writeTask.processedBytesCount
-                      / appBranchController.lastFailedDataTask.progress.writeTask.totalBytesCount
-                    )
-              }
-              appBranchStartDataTaskMutation={
-                appBranchController.doesNeedRepairing
-                  ? appBranchController.startRepairTaskMutation
-                  : appBranchController.startUpdateTaskMutation
-              }
-            />
-          );
-        }
-        case AppBranchTaskType.RepairTask: {
-          return (
-            <AppRegisteredBranchFailedDataTaskMenu
-              appBranchFailedDataTaskProgressPercentage={
-                appBranchController.lastFailedDataTask.progress === undefined || appBranchController.lastFailedDataTask.progress.writeTask.totalBytesCount === 0
-                  ? 0
-                  : (
-                      appBranchController.lastFailedDataTask.progress.writeTask.processedBytesCount
-                      / appBranchController.lastFailedDataTask.progress.writeTask.totalBytesCount
-                    )
-              }
-              appBranchStartDataTaskMutation={appBranchController.startRepairTaskMutation}
-            />
-          );
-        }
-      }
+      const failedTask = appBranchController.lastFailedDataTask;
+      const failedProgressPercentage = failedTask.progress === undefined || failedTask.progress.writeTask.totalBytesCount === 0
+        ? 0
+        : failedTask.progress.writeTask.processedBytesCount / failedTask.progress.writeTask.totalBytesCount;
+
+      const resumeMutation = failedTask.type === AppBranchTaskType.RepairTask
+        ? appBranchController.startRepairTaskMutation
+        : appBranchController.doesNeedRepairing
+          ? appBranchController.startRepairTaskMutation
+          : appBranchController.startUpdateTaskMutation;
+
+      return (
+        <AppRegisteredBranchFailedDataTaskMenu
+          appBranchFailedDataTaskProgressPercentage={failedProgressPercentage}
+          appBranchStartDataTaskMutation={resumeMutation}
+        />
+      );
     }
 
     if (appBranchController.doesNeedRepairing) {
@@ -268,6 +240,21 @@ function AppRegisteredBranchMenu(
     );
   }
 
+  if (isUpdateAvailable) {
+    return (
+      <Button
+        variant="outline"
+        className="w-48"
+        disabled={appBranchController.isAnyMutationPending}
+        onClick={async () => {
+          await appBranchController.startUpdateTaskMutation.mutate({});
+        }}
+      >
+        Update
+      </Button>
+    );
+  }
+
   return (
     <Button
       variant="outline"
@@ -289,12 +276,14 @@ export function AppBranchMenu(
     appBranchId,
     appBranchInfo,
     appBranchController,
+    isUpdateAvailable,
   }: {
     appId: string;
     appInfo: AppInfo;
     appBranchId: string;
     appBranchInfo: AppBranchInfo;
     appBranchController: AppBranchController;
+    isUpdateAvailable?: boolean;
   },
 ) {
   if (
@@ -311,5 +300,5 @@ export function AppBranchMenu(
     );
   }
 
-  return <AppRegisteredBranchMenu appBranchController={appBranchController} />;
+  return <AppRegisteredBranchMenu appBranchController={appBranchController} isUpdateAvailable={isUpdateAvailable} />;
 }
