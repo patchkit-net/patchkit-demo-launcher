@@ -266,7 +266,7 @@ export function RouteErrorComponent(
           </CardDescription>
         </CardHeader>
         <CardContent className="flex items-center justify-center">
-          <TypographyInlineCode className="max-h-96 overflow-y-auto">
+          <TypographyInlineCode className="max-h-96 select-text overflow-y-auto">
             {
               error instanceof Error
                 ? (error.stack ?? String(error))

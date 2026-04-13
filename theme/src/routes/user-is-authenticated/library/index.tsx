@@ -128,7 +128,7 @@ export function AppCard(
     appBranchId: appDefaultBranchId,
   });
   if (!appDefaultBranchInfoData.isValid) {
-    throw new Error(`Failed to fetch branch info: ${appDefaultBranchInfoData.errorTypeName}`);
+    return null;
   }
   const appDefaultBranchInfo = appDefaultBranchInfoData.appBranchInfo;
 

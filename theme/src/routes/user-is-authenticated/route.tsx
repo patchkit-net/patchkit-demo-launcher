@@ -270,7 +270,7 @@ function RouteComponent() {
               </DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-6">
-              <TypographyMuted>{appDataTaskErrorDialogState.message}</TypographyMuted>
+              <TypographyMuted className="select-text">{appDataTaskErrorDialogState.message}</TypographyMuted>
               <div className="flex flex-row justify-end gap-2">
                 <DialogClose asChild>
                   <Button
