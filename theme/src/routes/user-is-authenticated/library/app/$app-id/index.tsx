@@ -3,6 +3,7 @@ import {
   AppScreenshotInfo,
   AppVideoInfo,
   useAppBranchInfoSuspenseQuery,
+  useAppBranchLatestVersionIdQuery,
   useAppInfoSuspenseQuery,
   useAppScreenshotsInfoSuspenseQuery,
   useAppVideosInfoSuspenseQuery,
@@ -15,6 +16,7 @@ import {
 import {
   useEffect,
   useMemo,
+  useState,
 } from "react";
 
 import { AppSettingsDialogContent } from "@/components/app-settings-dialog-content";
@@ -151,10 +153,24 @@ function RouteComponent() {
 
   const navigate = useNavigate();
 
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
   const appDefaultBranchController = useAppBranchSuspenseController({
     appId,
     appBranchId: appDefaultBranchId,
   });
+
+  const appLatestVersionIdQuery = useAppBranchLatestVersionIdQuery({
+    appId,
+    appBranchId: appDefaultBranchId,
+  });
+
+  const isUpdateAvailable = appDefaultBranchController.isRegistered
+    && appDefaultBranchController.ongoingTask === undefined
+    && appDefaultBranchController.installedVersionId !== undefined
+    && appLatestVersionIdQuery.data !== undefined
+    && appLatestVersionIdQuery.data.errorTypeName === undefined
+    && appDefaultBranchController.lastInstalledVersionId !== appLatestVersionIdQuery.data.appBranchLatestVersionId;
 
   return (
     <div className="grid size-full animate-fade grid-rows-[auto_auto_1fr] animate-duration-500 animate-ease-in">
@@ -167,10 +183,6 @@ function RouteComponent() {
             onClick={async () => {
               await navigate({
                 to: "/user-is-authenticated/library",
-                search: prev => ({
-                  ...prev,
-                  isAppDownloadsPanelOpen: false,
-                }),
               });
             }}
           >
@@ -197,7 +209,7 @@ function RouteComponent() {
           >
             <StarIcon className="size-5" />
           </Button>
-          <Dialog>
+          <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
             <DialogTrigger asChild>
               <Button
                 variant="outline"
@@ -208,6 +220,7 @@ function RouteComponent() {
             </DialogTrigger>
             <AppSettingsDialogContent
               appId={appId}
+              onClose={() => { setIsSettingsOpen(false); }}
             />
           </Dialog>
         </div>
@@ -218,6 +231,7 @@ function RouteComponent() {
             appBranchId={appDefaultBranchId}
             appBranchInfo={appDefaultBranchInfo}
             appBranchController={appDefaultBranchController}
+            isUpdateAvailable={isUpdateAvailable}
           />
         </div>
       </div>
