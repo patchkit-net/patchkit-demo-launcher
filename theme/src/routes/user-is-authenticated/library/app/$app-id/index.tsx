@@ -77,7 +77,13 @@ function isYouTubeUrl(url: string): boolean {
 
 function getYouTubeEmbedUrl(url: string): string {
   const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?\s]+)/);
-  return match ? `https://www.youtube-nocookie.com/embed/${match[1]}` : url;
+  if (!match) return url;
+  const params = new URLSearchParams({
+    rel: "0",
+    modestbranding: "1",
+    disablekb: "1",
+  });
+  return `https://www.youtube-nocookie.com/embed/${match[1]}?${params.toString()}`;
 }
 
 function AppNotRegisteredBranchMenu(
@@ -546,7 +552,7 @@ function RouteComponent() {
                                 </Dialog>
                               )
                             : isYouTubeUrl(appMediaInfo.url)
-                              ? <iframe src={getYouTubeEmbedUrl(appMediaInfo.url)} className="aspect-video w-full rounded-lg border-2" allowFullScreen />
+                              ? <iframe src={getYouTubeEmbedUrl(appMediaInfo.url)} className="aspect-video w-full rounded-lg border-2" allow="autoplay; encrypted-media; fullscreen" allowFullScreen />
                               : <video src={appMediaInfo.url} className="h-auto w-full rounded-lg border-2" controls />
                         }
                         <TypographyMuted className="text-center">
