@@ -6,19 +6,20 @@ import {
 } from "@tanstack/react-router";
 import {
   CircleUserIcon,
+  CopyIcon,
   MinusIcon,
   Package2Icon,
+  SquareIcon,
   SunMoonIcon,
   XIcon,
 } from "lucide-react";
 import {
   minimizeWindow,
   startQuitTask,
+  toggleIsWindowMaximized,
+  useWindowStateSuspenseQuery,
 } from "@upsoft/patchkit-launcher-runtime-api-react-theme-client";
-import {
-  lazy,
-  Suspense,
-} from "react";
+// import { lazy, Suspense } from "react";
 import {
   forwardRef,
   useContext,
@@ -53,17 +54,18 @@ import { UserContext } from "@/contexts/user-context";
 import { UserAuth } from "@/lib/auth/user-auth";
 import { cn } from "@/lib/utils";
 
-const TanStackRouterDevtoolsOnlyInDev = import.meta.env.MODE === "production"
-  ? () => null
-  : lazy(
-    () => import("@tanstack/router-devtools").then(x => ({ default: x.TanStackRouterDevtools })),
-  );
-
-const RuntimeApiQueryClientDevToolsOnlyInDev = import.meta.env.MODE === "production"
-  ? () => null
-  : lazy(
-    () => import("@upsoft/patchkit-launcher-runtime-api-react-theme-client").then(x => ({ default: x.RuntimeApiQueryClientDevTools })),
-  );
+// Uncomment to enable TanStack Router and Query devtools overlay:
+// const TanStackRouterDevtoolsOnlyInDev = import.meta.env.MODE === "production"
+//   ? () => null
+//   : lazy(
+//     () => import("@tanstack/router-devtools").then(x => ({ default: x.TanStackRouterDevtools })),
+//   );
+//
+// const RuntimeApiQueryClientDevToolsOnlyInDev = import.meta.env.MODE === "production"
+//   ? () => null
+//   : lazy(
+//     () => import("@upsoft/patchkit-launcher-runtime-api-react-theme-client").then(x => ({ default: x.RuntimeApiQueryClientDevTools })),
+//   );
 
 const TitleBarMenuButton = forwardRef<HTMLButtonElement, ButtonProps & { isActive: boolean }>(
   (
@@ -138,6 +140,12 @@ export function TitleBarRightPanel() {
 
   const [isUserMenuOpened, setIsUserMenuOpened] = useState(false);
 
+  const { data: windowStateData } = useWindowStateSuspenseQuery({});
+  if (!windowStateData.isValid) {
+    throw new Error(`Failed to fetch window state: ${windowStateData.errorTypeName}`);
+  }
+  const windowState = windowStateData.windowState;
+
   return (
     <div
       className="app-region-no-drag flex flex-row items-center gap-6 justify-self-end"
@@ -191,6 +199,16 @@ export function TitleBarRightPanel() {
           }}
         >
           <MinusIcon className="size-5" />
+        </TitleBarWindowButton>
+        <TitleBarWindowButton
+          variant="ghost"
+          onClick={async () => {
+            await toggleIsWindowMaximized({});
+          }}
+        >
+          {windowState.isMaximized
+            ? <CopyIcon className="size-4" />
+            : <SquareIcon className="size-4" />}
         </TitleBarWindowButton>
         <TitleBarWindowButton
           variant="destructive"

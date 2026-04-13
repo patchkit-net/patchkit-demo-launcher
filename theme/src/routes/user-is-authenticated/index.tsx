@@ -39,7 +39,7 @@ export function RouteComponent() {
             {" "}
             to start distributing your games today!
           </TypographyP>
-          <TypographyMuted>Upsoft 2024</TypographyMuted>
+          <TypographyMuted>Upsoft 2026</TypographyMuted>
         </div>
       </ScrollArea>
     </div>
