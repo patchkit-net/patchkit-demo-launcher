@@ -19,7 +19,7 @@ export function AreYouSureDialogContent(
   },
 ) {
   return (
-    <DialogContent>
+    <DialogContent aria-describedby="">
       <DialogHeader>
         <DialogTitle>
           {title}

@@ -281,7 +281,7 @@ export function InstallAppBranchDialogContent(
   });
 
   return (
-    <DialogContent className="max-w-[800px]">
+    <DialogContent className="max-w-[800px]" aria-describedby="">
       <DialogHeader>
         <DialogTitle>
           {appLabel}

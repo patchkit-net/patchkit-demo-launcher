@@ -262,7 +262,7 @@ function RouteComponent() {
       {
         appDataTaskErrorDialogState !== undefined
         && (
-          <DialogContent>
+          <DialogContent aria-describedby="">
             <DialogHeader>
               <DialogTitle>
                 {appDataTaskErrorDialogState.title}

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   AppScreenshotInfo,
   AppVideoInfo,
@@ -8,6 +8,7 @@ import {
   useAppVideosInfoSuspenseQuery,
 } from "@upsoft/patchkit-launcher-runtime-api-react-theme-client";
 import {
+  ChevronLeftIcon,
   Settings2,
   StarIcon,
 } from "lucide-react";
@@ -148,6 +149,8 @@ function RouteComponent() {
   }
   const appDefaultBranchInfo = appDefaultBranchInfoData.appBranchInfo;
 
+  const navigate = useNavigate();
+
   const appDefaultBranchController = useAppBranchSuspenseController({
     appId,
     appBranchId: appDefaultBranchId,
@@ -159,6 +162,20 @@ function RouteComponent() {
         className="flex flex-row items-center justify-between px-12 py-6"
       >
         <div className="flex flex-row items-center gap-6">
+          <button
+            className="text-foreground transition hover:-translate-x-1"
+            onClick={async () => {
+              await navigate({
+                to: "/user-is-authenticated/library",
+                search: prev => ({
+                  ...prev,
+                  isAppDownloadsPanelOpen: false,
+                }),
+              });
+            }}
+          >
+            <ChevronLeftIcon strokeWidth={1.5} className="size-10" />
+          </button>
           <TypographyH1>{getAppLabel({ appInfo, appBranchInfo: appDefaultBranchInfo })}</TypographyH1>
           <Button
             className={cn(
@@ -233,7 +250,7 @@ function RouteComponent() {
                                 </Dialog>
                               )
                             : isYouTubeUrl(appMediaInfo.url)
-                              ? <iframe src={getYouTubeEmbedUrl(appMediaInfo.url)} className="aspect-video w-full rounded-lg border-2" allow="autoplay; encrypted-media; fullscreen" allowFullScreen />
+                              ? <iframe src={getYouTubeEmbedUrl(appMediaInfo.url)} className="aspect-video w-full rounded-lg border-2" allow="autoplay; encrypted-media; fullscreen" />
                               : <video src={appMediaInfo.url} className="h-auto w-full rounded-lg border-2" controls />
                         }
                         <TypographyMuted className="text-center">
