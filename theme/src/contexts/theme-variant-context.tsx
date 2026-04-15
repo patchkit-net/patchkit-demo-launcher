@@ -7,9 +7,9 @@ import {
 } from "react";
 import typia from "typia";
 
-import { fetchThemeVariant } from "@/lib/fetch-theme-variant";
-import { ThemeVariant } from "@/lib/theme-variant";
-import { ThemeVariantOption } from "@/lib/theme-variant-option";
+import { fetchThemeVariant } from "@/lib/theme/fetch-theme-variant";
+import { ThemeVariant } from "@/lib/theme/theme-variant";
+import { ThemeVariantOption } from "@/lib/theme/theme-variant-option";
 
 interface ThemeVariantOptionStoreState {
   value: ThemeVariantOption;

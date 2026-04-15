@@ -17,7 +17,7 @@ import {
   AppBranchRootDirPermissionsAreInsufficient,
   AppBranchTaskType,
   AppBranchUpdateTaskHasBeenCancelled,
-  ID,
+  PROTOCOL_INFO,
   startAppBranchProcess,
   startAppBranchRepairTask,
   startAppBranchUpdateTask,
@@ -43,7 +43,7 @@ import { TypographyLarge } from "@/components/ui/typography-large";
 import { TypographyMuted } from "@/components/ui/typography-muted";
 import { UserContext } from "@/contexts/user-context";
 import { cn } from "@/lib/utils";
-import { useAppBranchTaskFinishedPendingEventListener, useProtocolPendingRequestListener } from "@upsoft/patchkit-launcher-runtime-api-react-theme-extras";
+import { useAppBranchTaskFinishedEventRegisteredListener, useProtocolRequestRegisteredListener } from "@upsoft/patchkit-launcher-runtime-api-react-theme-extras";
 
 export const Route = createFileRoute("/user-is-authenticated")({
   component: RouteComponent,
@@ -102,18 +102,18 @@ function RouteComponent() {
     retry: () => void;
   } | undefined>(undefined);
 
-  useAppBranchTaskFinishedPendingEventListener(
+  useAppBranchTaskFinishedEventRegisteredListener(
     useCallback(
       (
         {
-          appBranchTaskFinishedPendingEventController,
+          appBranchTaskFinishedEventInfo,
         },
       ) => {
         const {
           appId,
           appBranchId,
           appBranchTask: appBranchTaskInfo,
-        } = appBranchTaskFinishedPendingEventController.info;
+        } = appBranchTaskFinishedEventInfo;
 
         if (
           appBranchTaskInfo.type === AppBranchTaskType.RepairTask
@@ -185,17 +185,16 @@ function RouteComponent() {
     ),
   );
 
-  useProtocolPendingRequestListener(
+  useProtocolRequestRegisteredListener(
     useCallback(
       async (
         {
-          protocolPendingRequestController,
+          protocolRequestInfo,
         },
       ) => {
-        const urlAsObject = new URL(protocolPendingRequestController.info.url);
-        console.log(urlAsObject);
+        const urlAsObject = new URL(protocolRequestInfo.url);
 
-        if (urlAsObject.href.startsWith(`${ID.value}://start-app-branch-process`)) {
+        if (urlAsObject.href.startsWith(`${PROTOCOL_INFO.value!.id}://start-app-branch-process`)) {
           const appId = urlAsObject.searchParams.get("appId");
           const appBranchId = urlAsObject.searchParams.get("appBranchId");
 
@@ -246,10 +245,6 @@ function RouteComponent() {
             await navigate({
               from: Route.fullPath,
               to: "/user-is-authenticated/library",
-              search: prev => ({
-                ...prev,
-                isAppDownloadsPanelOpen: false,
-              }),
             });
           }}
         >
@@ -263,14 +258,14 @@ function RouteComponent() {
       {
         appDataTaskErrorDialogState !== undefined
         && (
-          <DialogContent>
+          <DialogContent aria-describedby="">
             <DialogHeader>
               <DialogTitle>
                 {appDataTaskErrorDialogState.title}
               </DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-6">
-              <TypographyMuted>{appDataTaskErrorDialogState.message}</TypographyMuted>
+              <TypographyMuted className="select-text">{appDataTaskErrorDialogState.message}</TypographyMuted>
               <div className="flex flex-row justify-end gap-2">
                 <DialogClose asChild>
                   <Button

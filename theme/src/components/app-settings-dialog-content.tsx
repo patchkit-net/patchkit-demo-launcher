@@ -5,10 +5,10 @@ import {
   AppInfo,
   displaySelectAppBranchRootDirDialog,
   focusFileSystemEntryInFileExplorer,
-  useAppBranchInfo,
-  useAppInfo,
-  useAppRegisteredBranchesState,
-  useAppSecondaryBranchesInfoSuspenseValidQuery,
+  useAppBranchInfoSuspenseQuery,
+  useAppInfoSuspenseQuery,
+  useAppRegisteredBranchesStateSuspenseQuery,
+  useAppSecondaryBranchesInfoSuspenseQuery,
 } from "@upsoft/patchkit-launcher-runtime-api-react-theme-client";
 import {
   AppBranchController,
@@ -33,16 +33,17 @@ import {
   SetAppDefaultBranchIdInfo,
   useAppDefaultBranchIdInfo,
   useSetAppDefaultBranchIdInfo,
-} from "@/lib/apps-default-branch-id-store";
+} from "@/lib/stores/apps-default-branch-id-store";
 import { getAppBranchLabel } from "@/lib/get-app-branch-label";
 import { getAppLabel } from "@/lib/get-app-label";
-import { tryCreatingAppBranchDesktopShortcut } from "@/lib/try-creating-app-branch-desktop-shortcut";
-import { tryCreatingAppBranchStartMenuShortcut } from "@/lib/try-creating-app-branch-start-menu-shortcut";
+import { tryCreatingAppBranchDesktopShortcut } from "@/lib/shortcuts/try-creating-app-branch-desktop-shortcut";
+import { tryCreatingAppBranchStartMenuShortcut } from "@/lib/shortcuts/try-creating-app-branch-start-menu-shortcut";
 import { cn } from "@/lib/utils";
 
 import { AreYouSureDialogContent } from "./are-you-sure-dialog-content";
 import { InstallAppBranchDialogContent } from "./install-app-branch-dialog-content";
 import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 import {
   Card,
   CardContent,
@@ -83,7 +84,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
-import { TypographyInlineCode } from "./ui/typography-inline-code";
 import { TypographyMuted } from "./ui/typography-muted";
 
 function AppSettingsDialogContentInstallationTabContent(
@@ -91,10 +91,12 @@ function AppSettingsDialogContentInstallationTabContent(
     appInfo,
     appDefaultBranchInfo,
     appDefaultBranchController,
+    onClose,
   }: {
     appInfo: AppInfo;
     appDefaultBranchInfo: AppBranchInfo;
     appDefaultBranchController: AppBranchController;
+    onClose?: () => void;
   },
 ) {
   const appLabel = getAppLabel({ appInfo, appBranchInfo: appDefaultBranchInfo });
@@ -123,18 +125,12 @@ function AppSettingsDialogContentInstallationTabContent(
               <>
                 <CardContent className="flex flex-col items-center gap-2">
                   <div className="grid w-full grid-cols-[1fr_auto] items-center gap-2">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger className="overflow-hidden" asChild>
-                          <TypographyInlineCode className="h-8 content-center truncate text-center">
-                            {appDefaultBranchController.rootDir.path}
-                          </TypographyInlineCode>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          {appDefaultBranchController.rootDir.path}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <Input
+                      readOnly
+                      value={appDefaultBranchController.rootDir.path}
+                      className="h-10 cursor-default font-mono text-sm"
+                      ref={(el) => { if (el) el.scrollLeft = el.scrollWidth; }}
+                    />
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger className="overflow-hidden" asChild>
@@ -261,6 +257,7 @@ function AppSettingsDialogContentInstallationTabContent(
                       message={`This will remove all files associated with ${appLabel}.`}
                       onConfirm={async () => {
                         await appDefaultBranchController.startUninstallTaskMutation.mutate({});
+                        onClose?.();
                       }}
                     />
                   </Dialog>
@@ -311,6 +308,7 @@ function AppSettingsDialogContentInstallationTabContent(
                       appInfo={appInfo}
                       appBranchInfo={appDefaultBranchInfo}
                       appBranchController={appDefaultBranchController}
+                      onClose={onClose}
                     />
                   </Dialog>
 
@@ -465,24 +463,38 @@ function AppSettingsDialogContentBranchesTabContent(
 export function AppSettingsDialogContent(
   {
     appId,
+    onClose,
   }: {
     appId: string;
+    onClose?: () => void;
   },
 ) {
-  const appInfo = useAppInfo({
+  const { data: appInfoData } = useAppInfoSuspenseQuery({
     appId,
   });
+  if (!appInfoData.isValid) {
+    throw new Error(`Failed to fetch app info: ${appInfoData.errorTypeName}`);
+  }
+  const appInfo = appInfoData.appInfo;
 
-  const appRegisteredBranchesState = useAppRegisteredBranchesState({
+  const { data: appRegisteredBranchesStateData } = useAppRegisteredBranchesStateSuspenseQuery({
     appId,
   });
+  if (!appRegisteredBranchesStateData.isValid) {
+    throw new Error(`Failed to fetch registered branches state: ${appRegisteredBranchesStateData.errorTypeName}`);
+  }
+  const appRegisteredBranchesState = appRegisteredBranchesStateData.appRegisteredBranchesState;
 
-  const appMainBranchInfo = useAppBranchInfo({
+  const { data: appMainBranchInfoData } = useAppBranchInfoSuspenseQuery({
     appId,
     appBranchId: APP_MAIN_BRANCH_ID.value,
   });
+  if (!appMainBranchInfoData.isValid) {
+    throw new Error(`Failed to fetch main branch info: ${appMainBranchInfoData.errorTypeName}`);
+  }
+  const appMainBranchInfo = appMainBranchInfoData.appBranchInfo;
 
-  const appSecondaryBranchesInfoQuery = useAppSecondaryBranchesInfoSuspenseValidQuery({
+  const appSecondaryBranchesInfoQuery = useAppSecondaryBranchesInfoSuspenseQuery({
     appId,
     pageLimit: 10,
   });
@@ -501,7 +513,7 @@ export function AppSettingsDialogContent(
 
   const appSecondaryBranchesInfo = Object.fromEntries(
     appSecondaryBranchesInfoQuery.pages.flatMap(
-      x => Object.entries(x.data.appSecondaryBranchesInfo),
+      x => x.data.isValid ? Object.entries(x.data.appSecondaryBranchesInfo) : [],
     ),
   );
 
@@ -511,10 +523,14 @@ export function AppSettingsDialogContent(
 
   const setAppDefaultBranchIdInfo = useSetAppDefaultBranchIdInfo();
 
-  const appDefaultBranchInfo = useAppBranchInfo({
+  const { data: appDefaultBranchInfoData } = useAppBranchInfoSuspenseQuery({
     appId,
     appBranchId: appDefaultBranchIdInfo.defaultBranchId,
   });
+  if (!appDefaultBranchInfoData.isValid) {
+    throw new Error(`Failed to fetch default branch info: ${appDefaultBranchInfoData.errorTypeName}`);
+  }
+  const appDefaultBranchInfo = appDefaultBranchInfoData.appBranchInfo;
 
   const appDefaultBranchController = useAppBranchSuspenseController({
     appId,
@@ -527,7 +543,7 @@ export function AppSettingsDialogContent(
   });
 
   return (
-    <DialogContent className="max-w-[800px]">
+    <DialogContent className="max-w-[800px]" aria-describedby="">
       <DialogHeader>
         <DialogTitle>
           {appLabel}
@@ -543,6 +559,7 @@ export function AppSettingsDialogContent(
             appInfo={appInfo}
             appDefaultBranchInfo={appDefaultBranchInfo}
             appDefaultBranchController={appDefaultBranchController}
+            onClose={onClose}
           />
         </TabsContent>
         <TabsContent value="branches">

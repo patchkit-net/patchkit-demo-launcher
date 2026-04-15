@@ -2,9 +2,9 @@ import {
   AppBranchInfo,
   AppInfo,
   displaySelectAppBranchRootDirDialog,
-  useAppBranchDefaultRootDirPath,
-  useAppBranchLatestVersionId,
-  useAppBranchVersionInfo,
+  useAppBranchDefaultRootDirPathSuspenseQuery,
+  useAppBranchLatestVersionIdSuspenseQuery,
+  useAppBranchVersionInfoSuspenseQuery,
   useDirDiskFreeSpaceBytesCountQuery,
 } from "@upsoft/patchkit-launcher-runtime-api-react-theme-client";
 import { FolderEditIcon } from "lucide-react";
@@ -14,13 +14,15 @@ import {
 } from "react";
 
 import { getAppLabel } from "@/lib/get-app-label";
-import { IS_CREATING_START_MENU_SHORTCUT_SUPPORTED } from "@/lib/is-creating-start-menu-shortcut-supported";
-import { tryCreatingAppBranchDesktopShortcut } from "@/lib/try-creating-app-branch-desktop-shortcut";
-import { tryCreatingAppBranchStartMenuShortcut } from "@/lib/try-creating-app-branch-start-menu-shortcut";
+import { IS_CREATING_START_MENU_SHORTCUT_SUPPORTED } from "@/lib/shortcuts/is-creating-start-menu-shortcut-supported";
+import { tryCreatingAppBranchDesktopShortcut } from "@/lib/shortcuts/try-creating-app-branch-desktop-shortcut";
+import { tryCreatingAppBranchStartMenuShortcut } from "@/lib/shortcuts/try-creating-app-branch-start-menu-shortcut";
 
 import { SpinnerLayout } from "./spinner-layout";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
 import {
   DialogClose,
   DialogContent,
@@ -34,7 +36,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
-import { TypographyInlineCode } from "./ui/typography-inline-code";
 import { TypographyMuted } from "./ui/typography-muted";
 import { TypographySmall } from "./ui/typography-small";
 import { AppNotRegisteredBranchController } from "@upsoft/patchkit-launcher-runtime-api-react-theme-extras";
@@ -52,27 +53,41 @@ function InstallAppBranchDialogSuspenseContent(
     appInfo,
     appBranchInfo,
     appBranchController,
+    onClose,
   }: {
     appInfo: AppInfo;
     appBranchInfo: AppBranchInfo;
     appBranchController: AppNotRegisteredBranchController;
+    onClose?: () => void;
   },
 ) {
-  const appBranchLatestVersionId = useAppBranchLatestVersionId({
+  const { data: appBranchLatestVersionIdData } = useAppBranchLatestVersionIdSuspenseQuery({
     appId: appInfo.id,
     appBranchId: appBranchInfo.id,
   });
+  if (!appBranchLatestVersionIdData.isValid) {
+    throw new Error(`Failed to fetch latest version: ${appBranchLatestVersionIdData.errorTypeName}`);
+  }
+  const appBranchLatestVersionId = appBranchLatestVersionIdData.appBranchLatestVersionId;
 
-  const appBranchLatestVersionInfo = useAppBranchVersionInfo({
+  const { data: appBranchLatestVersionInfoData } = useAppBranchVersionInfoSuspenseQuery({
     appId: appInfo.id,
     appBranchId: appBranchInfo.id,
     appBranchVersionId: appBranchLatestVersionId,
   });
+  if (!appBranchLatestVersionInfoData.isValid) {
+    throw new Error(`Failed to fetch version info: ${appBranchLatestVersionInfoData.errorTypeName}`);
+  }
+  const appBranchLatestVersionInfo = appBranchLatestVersionInfoData.appBranchVersionInfo;
 
-  const appBranchDefaultRootDirPath = useAppBranchDefaultRootDirPath({
+  const { data: appBranchDefaultRootDirPathData } = useAppBranchDefaultRootDirPathSuspenseQuery({
     appId: appInfo.id,
     appBranchId: appBranchInfo.id,
   });
+  if (!appBranchDefaultRootDirPathData.isValid) {
+    throw new Error(`Failed to fetch default root dir path: ${appBranchDefaultRootDirPathData.errorTypeName}`);
+  }
+  const appBranchDefaultRootDirPath = appBranchDefaultRootDirPathData.appBranchDefaultRootDirPath;
 
   const [shouldCreateAppBranchDesktopShortcut, setShouldCreateAppBranchDesktopShortcut] = useState<boolean>(false);
 
@@ -96,18 +111,12 @@ function InstallAppBranchDialogSuspenseContent(
     <div className="flex size-full flex-col justify-between">
       <div className="flex flex-col gap-2">
         <div className="grid grid-cols-[1fr_auto] items-center gap-2">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger className="overflow-hidden" asChild>
-                <TypographyInlineCode className="h-8 content-center truncate text-center">
-                  {appBranchRootDirPath}
-                </TypographyInlineCode>
-              </TooltipTrigger>
-              <TooltipContent>
-                {appBranchRootDirPath}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Input
+            readOnly
+            value={appBranchRootDirPath}
+            className="h-10 cursor-default font-mono text-sm"
+            ref={(el) => { if (el) el.scrollLeft = el.scrollWidth; }}
+          />
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger className="overflow-hidden" asChild>
@@ -181,26 +190,28 @@ function InstallAppBranchDialogSuspenseContent(
         }
       </div>
       <div className="flex flex-col gap-2">
-        <div className="flex flex-row gap-2">
+        <div className="flex flex-row items-center gap-2">
           <Checkbox
+            id="create-desktop-shortcut"
             checked={shouldCreateAppBranchDesktopShortcut}
             onCheckedChange={(checked) => {
               setShouldCreateAppBranchDesktopShortcut(checked === true);
             }}
           />
-          <TypographyMuted>Create Desktop Shortcut</TypographyMuted>
+          <Label htmlFor="create-desktop-shortcut" className="cursor-pointer text-sm text-muted-foreground font-normal">Create Desktop Shortcut</Label>
         </div>
         {
           IS_CREATING_START_MENU_SHORTCUT_SUPPORTED
             ? (
-                <div className="flex flex-row gap-2">
+                <div className="flex flex-row items-center gap-2">
                   <Checkbox
+                    id="create-start-menu-shortcut"
                     checked={shouldCreateAppBranchStartMenuShortcut}
                     onCheckedChange={(checked) => {
                       setShouldCreateAppBranchStartMenuShortcut(checked === true);
                     }}
                   />
-                  <TypographyMuted>Create Start Menu Shortcut</TypographyMuted>
+                  <Label htmlFor="create-start-menu-shortcut" className="cursor-pointer text-sm text-muted-foreground font-normal">Create Start Menu Shortcut</Label>
                 </div>
               )
             : <></>
@@ -233,6 +244,8 @@ function InstallAppBranchDialogSuspenseContent(
                     appBranchInfo,
                   });
                 }
+
+                onClose?.();
               }}
             >
               Install
@@ -257,10 +270,12 @@ export function InstallAppBranchDialogContent(
     appInfo,
     appBranchInfo,
     appBranchController,
+    onClose,
   }: {
     appInfo: AppInfo;
     appBranchInfo: AppBranchInfo;
     appBranchController: AppNotRegisteredBranchController;
+    onClose?: () => void;
   },
 ) {
   const appLabel = getAppLabel({
@@ -269,7 +284,7 @@ export function InstallAppBranchDialogContent(
   });
 
   return (
-    <DialogContent className="max-w-[800px]">
+    <DialogContent className="max-w-[800px]" aria-describedby="">
       <DialogHeader>
         <DialogTitle>
           {appLabel}
@@ -281,6 +296,7 @@ export function InstallAppBranchDialogContent(
             appInfo={appInfo}
             appBranchInfo={appBranchInfo}
             appBranchController={appBranchController}
+            onClose={onClose}
           />
         </Suspense>
       </div>

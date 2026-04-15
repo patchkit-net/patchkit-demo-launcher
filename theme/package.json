@@ -9,7 +9,7 @@
     "lint": "eslint . --max-warnings=0",
     "dev": "vite",
     "preview": "vite preview",
-    "publish": "vite build && publish-patchkit-launcher-theme"
+    "publish": "dotenv -e ../.env -- sh -c 'vite build && publish-patchkit-launcher-theme -p prod-theme-preset.ts'"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.0.0",
@@ -24,14 +24,14 @@
     "@radix-ui/react-slot": "^1.0.0",
     "@radix-ui/react-tabs": "^1.0.0",
     "@radix-ui/react-tooltip": "^1.0.0",
-    "@tanstack/react-query": "^5.0.0",
+    "@tanstack/react-query": "^5.83.0",
     "@tanstack/react-query-devtools": "^5.0.0",
     "@tanstack/react-router": "^1.0.0",
     "@tsparticles/engine": "^3.0.0",
     "@tsparticles/react": "^3.0.0",
     "@tsparticles/slim": "^3.0.0",
-    "@upsoft/patchkit-launcher-runtime-api-react-theme-client": "1.1.1",
-    "@upsoft/patchkit-launcher-runtime-api-react-theme-extras": "1.1.1",
+    "@upsoft/patchkit-launcher-runtime-api-react-theme-client": "2.0.0-alpha.27",
+    "@upsoft/patchkit-launcher-runtime-api-react-theme-extras": "2.0.0-alpha.27",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "cmdk": "^1.0.0",
@@ -61,7 +61,7 @@
     "@types/crypto-js": "^4.0.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "@upsoft/patchkit-launcher-theme-package-dev-tools": "1.1.1",
+    "@upsoft/patchkit-launcher-theme-package-dev-tools": "2.0.0-alpha.27",
     "@vitejs/plugin-react": "4.3.2",
     "autoprefixer": "^10.0.0",
     "eslint": "9.14.0",
@@ -82,6 +82,7 @@
     "unplugin-fonts": "1.1.1",
     "vite": "5.4.8",
     "vite-plugin-pwa": "0.20.5",
-    "vite-tsconfig-paths": "5.0.1"
+    "vite-tsconfig-paths": "5.0.1",
+    "dotenv-cli": "^8.0.0"
   }
 }

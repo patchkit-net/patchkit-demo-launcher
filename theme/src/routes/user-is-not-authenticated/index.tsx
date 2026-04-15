@@ -6,7 +6,6 @@ import {
 } from "react";
 
 import {
-  DiscordIconSrc,
   GoogleIconSrc,
   PatchKitLogoSrc,
 } from "@/assets";
@@ -21,7 +20,7 @@ import { TypographySmall } from "@/components/ui/typography-small";
 import { ParticlesComponentContext } from "@/contexts/particles-component-context";
 import { ThemeVariantContext } from "@/contexts/theme-variant-context";
 import { UserContext } from "@/contexts/user-context";
-import { ThemeVariant } from "@/lib/theme-variant";
+import { ThemeVariant } from "@/lib/theme/theme-variant";
 
 export const Route = createFileRoute("/user-is-not-authenticated/")({
   component: RouteComponent,
@@ -188,7 +187,7 @@ function RouteComponent() {
             <TypographyMuted className="text-center">Or continue with</TypographyMuted>
             <Separator />
           </div>
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid gap-6">
             <Button
               className="w-full"
               disabled={startSignInUserWithGoogleTaskMutation.status === `pending`}
@@ -197,9 +196,6 @@ function RouteComponent() {
               }}
             >
               <img className="size-5" src={GoogleIconSrc} />
-            </Button>
-            <Button className="w-full">
-              <img className="size-5" src={DiscordIconSrc} />
             </Button>
           </div>
         </div>

@@ -7,9 +7,9 @@ import {
 } from "react";
 import * as typia from "typia";
 
-import { UserAuth } from "@/lib/user-auth";
-import { UserCredentials } from "@/lib/user-credentials";
-import { UserCredentialsAreInvalid } from "@/lib/user-credentials-are-invalid";
+import { UserAuth } from "@/lib/auth/user-auth";
+import { UserCredentials } from "@/lib/auth/user-credentials";
+import { UserCredentialsAreInvalid } from "@/lib/auth/user-credentials-are-invalid";
 
 interface UserInternalAuth {
   id: string;
@@ -68,22 +68,15 @@ async function fetchUserInternalAuthWithCredentials(
     userCredentials: UserCredentials;
   },
 ): Promise<UserInternalAuth> {
-  console.log("SIMULATION: Delaying fetchUserInternalAuthWithCredentials by 1 second");
   await new Promise(resolve => setTimeout(resolve, 1000));
 
   if (userCredentials.email === "invalid") {
-    console.log("SIMULATION: Mocking fetchUserInternalAuthWithCredentials with UserCredentialsAreInvalid error");
     throw new UserCredentialsAreInvalid();
   }
 
   if (userCredentials.email === "error") {
-    console.log("SIMULATION: Mocking fetchUserInternalAuthWithCredentials with generic error");
     throw new Error();
   }
-
-  // IMPLEMENT: Call the API to acquire access token
-
-  console.log(`SIMULATION: Mocking fetchUserInternalAuthWithCredentials with successful result`);
 
   return {
     id: "fake-id",
@@ -100,12 +93,7 @@ async function fetchUserInternalAuthWithRefreshToken(
     userRefreshToken: string;
   },
 ): Promise<UserInternalAuth> {
-  console.log("SIMULATION: Delaying fetchUserInternalAuthWithRefreshToken by 1 second");
   await new Promise(resolve => setTimeout(resolve, 1000));
-
-  // IMPLEMENT: Call the API to acquire access and refresh tokens
-
-  console.log(`SIMULATION: Mocking fetchUserInternalAuthWithRefreshToken with successful result`);
 
   return {
     id: "fake-id",
@@ -134,12 +122,7 @@ async function invalidateUserInternalAuth(
     userInternalAuth: UserInternalAuth;
   },
 ): Promise<void> {
-  console.log("SIMULATION: Delaying invalidateUserInternalAuth by 1 second");
   await new Promise(resolve => setTimeout(resolve, 1000));
-
-  // IMPLEMENT: Call the API to invalidate access token
-
-  console.log(`SIMULATION: Mocking invalidateUserInternalAuth with successful result`);
 }
 
 interface UserContextValue {
@@ -152,7 +135,6 @@ interface UserContextValue {
     }
   >>;
   startSignInUserWithGoogleTaskMutation: ReturnType<typeof useMutation<void, unknown>>;
-  startSignInUserWithTwitterTaskMutation: ReturnType<typeof useMutation<void, unknown>>;
   signOutUserMutation: ReturnType<typeof useMutation<void, unknown>>;
 }
 
@@ -237,13 +219,7 @@ export function UserContextProvider({
 
   const startSignInUserWithGoogleTaskMutation: UserContextValue["startSignInUserWithGoogleTaskMutation"] = useMutation({
     mutationFn: async () => {
-      // TODO:
-    },
-  });
-
-  const startSignInUserWithTwitterTaskMutation: UserContextValue["startSignInUserWithTwitterTaskMutation"] = useMutation({
-    mutationFn: async () => {
-      // TODO:
+      // Not applicable in mock auth mode. See firebase-user-context.tsx for a real OAuth2 implementation.
     },
   });
 
@@ -275,7 +251,6 @@ export function UserContextProvider({
             },
         signInUserWithCredentialsMutation,
         startSignInUserWithGoogleTaskMutation,
-        startSignInUserWithTwitterTaskMutation,
         signOutUserMutation,
       };
     },
@@ -283,7 +258,6 @@ export function UserContextProvider({
       userInternalAuth,
       signInUserWithCredentialsMutation,
       startSignInUserWithGoogleTaskMutation,
-      startSignInUserWithTwitterTaskMutation,
       signOutUserMutation,
     ],
   );

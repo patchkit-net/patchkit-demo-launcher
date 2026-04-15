@@ -1,15 +1,11 @@
 import { useMutation } from "@tanstack/react-query";
 import {
-  callNodeFetch,
   configureOauth2LoopbackDefaultServer,
-  dismissOauth2LoopbackPendingRequest,
-  dismissProtocolPendingRequest,
-  fetchOauth2LoopbackPendingRequestsInfo,
-  fetchProtocolPendingRequestsInfo,
 } from "@upsoft/patchkit-launcher-runtime-api-react-theme-client";
-import * as CryptoJS from "crypto-js";
+import {
+  useOauth2LoopbackRequestRegisteredListener,
+} from "@upsoft/patchkit-launcher-runtime-api-react-theme-extras";
 import * as FirebaseAuth from "firebase/auth";
-import { default as Oauth } from "oauth-1.0a";
 import {
   createContext,
   useCallback,
@@ -19,10 +15,10 @@ import {
 } from "react";
 
 import { firebaseAuth } from "@/lib/firebase/auth";
-import { generateUserOauth2CodeVerifier } from "@/lib/generate-user-oauth2-code-verifier";
-import { getUserOauth2CodeChallenge } from "@/lib/get-user-oauth2-code-challange";
-import { UserAuth } from "@/lib/user-auth";
-import { UserCredentials } from "@/lib/user-credentials";
+import { generateUserOauth2CodeVerifier } from "@/lib/auth/generate-user-oauth2-code-verifier";
+import { getUserOauth2CodeChallenge } from "@/lib/auth/get-user-oauth2-code-challange";
+import { UserAuth } from "@/lib/auth/user-auth";
+import { UserCredentials } from "@/lib/auth/user-credentials";
 
 interface SignInFirebaseUserWithGoogleTaskState {
   firebaseUserGoogleOauth2CodeVerifier: string;
@@ -31,103 +27,6 @@ interface SignInFirebaseUserWithGoogleTaskState {
 
 const FIREBASE_GOOGLE_OAUTH2_CLIENT_ID = `301007649698-71lvhjg7p157u01vj13e93a4ctvpfgtn.apps.googleusercontent.com`;
 const FIREBASE_GOOGLE_OAUTH2_CLIENT_SECRET = `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`;
-
-const FIREBASE_TWITTER_API_KEY = `TODO`;
-const FIREBASE_TWITTER_API_SECRET = `TODO`;
-const FIREBASE_TWITTER_OAUTH = new Oauth({
-  consumer: {
-    key: FIREBASE_TWITTER_API_KEY,
-    secret: FIREBASE_TWITTER_API_SECRET,
-  },
-  signature_method: "HMAC-SHA1",
-  hash_function: (message, key) => {
-    return CryptoJS.HmacSHA1(message, key).toString(CryptoJS.enc.Base64); ;
-  },
-});
-
-type CheckOauth2LoopbackPendingRequests = (
-  {
-  }: {
-    oauth2LoopbackPendingRequestsInfo: Awaited<ReturnType<typeof fetchOauth2LoopbackPendingRequestsInfo>>;
-  }
-) => Promise<void>;
-
-function useOauth2LoopbackPendingRequestsHandler(
-  checkOauth2LoopbackPendingRequests: CheckOauth2LoopbackPendingRequests,
-) {
-  const [shouldCheck, setShouldCheck] = useState<boolean>(true);
-
-  useEffect(
-    () => {
-      if (!shouldCheck) {
-        return;
-      }
-
-      setShouldCheck(false);
-
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      (async () => {
-        try {
-          const oauth2LoopbackPendingRequestsInfo = await fetchOauth2LoopbackPendingRequestsInfo({});
-
-          await checkOauth2LoopbackPendingRequests({
-            oauth2LoopbackPendingRequestsInfo,
-          });
-        } finally {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-
-          setShouldCheck(true);
-        }
-      })();
-    },
-    [
-      shouldCheck,
-      checkOauth2LoopbackPendingRequests,
-    ],
-  );
-}
-
-type CheckProtocolPendingRequests = (
-  {
-  }: {
-    protocolPendingRequestsInfo: Awaited<ReturnType<typeof fetchProtocolPendingRequestsInfo>>;
-  }
-) => Promise<void>;
-
-function useProtocolPendingRequestsHandler(
-  checkProtocolPendingRequests: CheckProtocolPendingRequests,
-) {
-  const [shouldCheck, setShouldCheck] = useState<boolean>(true);
-
-  useEffect(
-    () => {
-      if (!shouldCheck) {
-        return;
-      }
-
-      setShouldCheck(false);
-
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      (async () => {
-        try {
-          const protocolPendingRequestsInfo = await fetchProtocolPendingRequestsInfo({});
-
-          await checkProtocolPendingRequests({
-            protocolPendingRequestsInfo,
-          });
-        } finally {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-
-          setShouldCheck(true);
-        }
-      })();
-    },
-    [
-      shouldCheck,
-      checkProtocolPendingRequests,
-    ],
-  );
-}
 
 interface UserContextValue {
   userAuth: UserAuth | undefined;
@@ -139,7 +38,6 @@ interface UserContextValue {
     }
   >>;
   startSignInUserWithGoogleTaskMutation: ReturnType<typeof useMutation<void, unknown>>;
-  startSignInUserWithTwitterTaskMutation: ReturnType<typeof useMutation<void, unknown>>;
   signOutUserMutation: ReturnType<typeof useMutation<void, unknown>>;
 }
 
@@ -241,69 +139,18 @@ export function UserContextProvider({
     },
   });
 
-  const startSignInUserWithTwitterTaskMutation: UserContextValue["startSignInUserWithTwitterTaskMutation"] = useMutation({
-    mutationFn: async () => {
-      const firebaseUserTwitterOauthCallback = `patchkit-demo-launcher://twitter-auth`;
-
-      let requestTokenEndpointRequestUrl = `https://api.x.com/oauth/request_token?`;
-
-      requestTokenEndpointRequestUrl += `oauth_callback=${encodeURIComponent(firebaseUserTwitterOauthCallback)}`;
-
-      const requestTokenEndpointNodeFetchResult = await callNodeFetch({
-        nodeFetchArgs: {
-          input: requestTokenEndpointRequestUrl,
-          init: {
-            method: `POST`,
-            headers: {
-              Authorization: FIREBASE_TWITTER_OAUTH.toHeader(
-                FIREBASE_TWITTER_OAUTH.authorize({
-                  url: requestTokenEndpointRequestUrl,
-                  method: `POST`,
-                }),
-              ).Authorization,
-            },
-          },
+  useOauth2LoopbackRequestRegisteredListener(
+    useCallback(
+      async (
+        {
+          oauth2LoopbackRequestInfo,
         },
-      });
-
-      if (requestTokenEndpointNodeFetchResult.error !== undefined) {
-        console.error(requestTokenEndpointNodeFetchResult.error);
-      } else {
-        const requestTokenEndpointResponse = requestTokenEndpointNodeFetchResult.response;
-
-        if (requestTokenEndpointResponse.ok) {
-          const requestTokenEndpointResponseBody = new URLSearchParams(requestTokenEndpointResponse.bodyAsText);
-
-          const firebaseUserTwitterOauthToken = requestTokenEndpointResponseBody.get("oauth_token");
-          const firebaseUserTwitterOauthTokenSecret = requestTokenEndpointResponseBody.get("oauth_token_secret");
-
-          if (firebaseUserTwitterOauthToken !== null && firebaseUserTwitterOauthTokenSecret !== null) {
-            window.open(
-              `https://api.x.com/oauth/authorize?oauth_token=${firebaseUserTwitterOauthToken}`,
-              `_blank`,
-            );
-          }
-        }
-      }
-    },
-  });
-
-  const checkOauth2LoopbackPendingRequests: CheckOauth2LoopbackPendingRequests = useCallback(
-    async (
-      {
-        oauth2LoopbackPendingRequestsInfo,
-      },
-    ) => {
-      for (const [oauth2LoopbackPendingRequestId, oauth2LoopbackPendingRequestInfo] of Object.entries(oauth2LoopbackPendingRequestsInfo)) {
+      ) => {
         try {
-          const oauth2LoopbackPendingRequestUrlAsObject = new URL(oauth2LoopbackPendingRequestInfo.url);
+          const oauth2LoopbackRequestUrlAsObject = new URL(oauth2LoopbackRequestInfo.url);
 
-          if (oauth2LoopbackPendingRequestUrlAsObject.pathname.includes(`google-auth`)) {
-            await dismissOauth2LoopbackPendingRequest({
-              oauth2LoopbackPendingRequestId,
-            });
-
-            const firebaseUserGoogleOauth2Code = oauth2LoopbackPendingRequestUrlAsObject.searchParams.get(`code`);
+          if (oauth2LoopbackRequestUrlAsObject.pathname.includes(`google-auth`)) {
+            const firebaseUserGoogleOauth2Code = oauth2LoopbackRequestUrlAsObject.searchParams.get(`code`);
 
             if (firebaseUserGoogleOauth2Code !== null && signInFirebaseUserWithGoogleTaskState !== undefined) {
               const tokenEndpointResponse = await fetch(
@@ -342,88 +189,12 @@ export function UserContextProvider({
         } catch (e) {
           console.error(e);
         }
-      }
-    },
-    [
-      signInFirebaseUserWithGoogleTaskState,
-    ],
-  );
-
-  useOauth2LoopbackPendingRequestsHandler(checkOauth2LoopbackPendingRequests);
-
-  const checkProtocolPendingRequests: CheckProtocolPendingRequests = useCallback(
-    async (
-      {
-        protocolPendingRequestsInfo,
       },
-    ) => {
-      for (const [protocolPendingRequestId, protocolPendingRequestInfo] of Object.entries(protocolPendingRequestsInfo)) {
-        try {
-          const protocolPendingRequestUrlAsObject = new URL(protocolPendingRequestInfo.url);
-
-          if (protocolPendingRequestUrlAsObject.pathname.includes(`twitter-auth`)) {
-            await dismissProtocolPendingRequest({
-              protocolPendingRequestId,
-            });
-
-            const firebaseUserTwitterOauthToken = protocolPendingRequestUrlAsObject.searchParams.get(`oauth_token`);
-            const firebaseUserTwitterOauthVerifier = protocolPendingRequestUrlAsObject.searchParams.get(`oauth_verifier`);
-
-            if (firebaseUserTwitterOauthToken !== null && firebaseUserTwitterOauthVerifier !== null) {
-              let accessTokenEndpointRequestUrl = `https://api.x.com/oauth/access_token?`;
-
-              accessTokenEndpointRequestUrl += `oauth_token=${firebaseUserTwitterOauthToken}&`;
-              accessTokenEndpointRequestUrl += `oauth_verifier=${firebaseUserTwitterOauthVerifier}`;
-
-              const accessTokenEndpointNodeFetchResult = await callNodeFetch({
-                nodeFetchArgs: {
-                  input: accessTokenEndpointRequestUrl,
-                  init: {
-                    method: `POST`,
-                    headers: {
-                      Authorization: FIREBASE_TWITTER_OAUTH.toHeader(
-                        FIREBASE_TWITTER_OAUTH.authorize({
-                          url: accessTokenEndpointRequestUrl,
-                          method: `POST`,
-                        }),
-                      ).Authorization,
-                    },
-                  },
-                },
-              });
-
-              if (accessTokenEndpointNodeFetchResult.error !== undefined) {
-                console.error(accessTokenEndpointNodeFetchResult.error);
-              } else {
-                const accessTokenEndpointResponse = accessTokenEndpointNodeFetchResult.response;
-
-                const accessTokenEndpointResponseBody = new URLSearchParams(accessTokenEndpointResponse.bodyAsText);
-
-                const firebaseUserTwitterOauthAccessToken = accessTokenEndpointResponseBody.get("oauth_token");
-                const firebaseUserTwitterOauthAccessTokenSecret = accessTokenEndpointResponseBody.get("oauth_token_secret");
-
-                if (firebaseUserTwitterOauthAccessToken !== null && firebaseUserTwitterOauthAccessTokenSecret !== null) {
-                  await FirebaseAuth.signInWithCredential(
-                    firebaseAuth,
-                    FirebaseAuth.TwitterAuthProvider.credential(
-                      firebaseUserTwitterOauthAccessToken,
-                      firebaseUserTwitterOauthAccessTokenSecret,
-                    ),
-                  );
-                }
-              }
-            }
-          }
-        } catch (e) {
-          console.error(e);
-        }
-      }
-    },
-    [
-    ],
+      [
+        signInFirebaseUserWithGoogleTaskState,
+      ],
+    ),
   );
-
-  useProtocolPendingRequestsHandler(checkProtocolPendingRequests);
 
   const signOutUserMutation: UserContextValue["signOutUserMutation"] = useMutation({
     mutationFn: async () => {
@@ -437,7 +208,6 @@ export function UserContextProvider({
         userAuth,
         signInUserWithCredentialsMutation,
         startSignInUserWithGoogleTaskMutation,
-        startSignInUserWithTwitterTaskMutation,
         signOutUserMutation,
       };
     },
@@ -445,7 +215,6 @@ export function UserContextProvider({
       userAuth,
       signInUserWithCredentialsMutation,
       startSignInUserWithGoogleTaskMutation,
-      startSignInUserWithTwitterTaskMutation,
       signOutUserMutation,
     ],
   );
