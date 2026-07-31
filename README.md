@@ -16,8 +16,11 @@ Install the dependencies:
 ```
 cd runtime && yarn install
 cd ../theme && yarn install
-cd .. && yarn install
 ```
+
+A project created with the setup wizard already has these installed. Commands in this
+file use yarn because that is the project default — substitute `npm run` or `pnpm` if you
+chose one of those.
 
 Start the launcher:
 
@@ -34,7 +37,7 @@ launcher window opens on your desktop. Stop everything with Ctrl+C.
 | --- | --- |
 | `theme/` | The React UI, served by Vite in development |
 | `runtime/` | Electron runtime configuration and build presets |
-| `e2e/` | Smoke test for a running launcher |
+| `theme/e2e/` | Smoke test for a running launcher |
 | `scripts/` | Development entry point |
 
 ## Testing a running launcher
@@ -71,15 +74,16 @@ const page = browser.contexts()
 await page.screenshot({ path: "launcher.png" });
 ```
 
-`e2e/smoke.mjs` is a longer worked example, including how to call the launcher's own
-runtime API from a script.
+`theme/e2e/smoke.mjs` is a longer worked example, including how to call the launcher's
+own runtime API from a script.
 
 **With an AI coding agent** — MCP configuration is checked in for editors that read it
 from the project directory, so no setup is needed. See [AGENTS.md](AGENTS.md), which
 also covers the traps worth knowing before trusting what an agent reports.
 
-Set `PATCHKIT_CDP_PORT` to choose the port, or `PATCHKIT_CDP_PORT=0` to start without it.
-If the default port is busy the script picks the next free one and says so.
+The port is fixed at 9222 so that checked-in tooling configuration keeps working; if it
+is already in use the launcher stops with an explanation instead of quietly moving
+elsewhere. `PATCHKIT_CDP_PORT` overrides it, and `PATCHKIT_CDP_PORT=0` starts without it.
 `PATCHKIT_ELECTRON_ARGS` passes extra arguments to Electron, which headless Linux
 environments need — see below.
 

@@ -30,7 +30,6 @@ const RUNTIME_DIR = resolve(PROJECT_DIR, "runtime");
 const SESSION_FILE_PATH = resolve(PROJECT_DIR, ".patchkit-dev.json");
 
 const DEFAULT_CDP_PORT = 9222;
-const CDP_PORT_SEARCH_LIMIT = 10;
 const THEME_STARTUP_TIMEOUT_MS = 120_000;
 
 const RUNTIME_PRESET_FILE_NAMES = {
@@ -116,8 +115,10 @@ function isPortTaken(port) {
 }
 
 /**
- * Keeps the happy path on the default port so a checked-in MCP config stays valid,
- * and falls back to the next free one rather than starting without CDP.
+ * The debugging port stays where the checked-in MCP configuration expects it. Silently
+ * moving to another port would leave that configuration pointing at nothing, and the
+ * resulting connection error looks identical to "the launcher is not running" — so a
+ * taken port is reported instead of worked around.
  */
 async function resolveCdpPort() {
   const requested = process.env.PATCHKIT_CDP_PORT;
@@ -126,25 +127,25 @@ async function resolveCdpPort() {
     return undefined;
   }
 
-  const preferred = requested === undefined ? DEFAULT_CDP_PORT : Number.parseInt(requested, 10);
+  const port = requested === undefined ? DEFAULT_CDP_PORT : Number.parseInt(requested, 10);
 
-  if (!Number.isInteger(preferred) || preferred < 1 || preferred > 65535) {
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
     fail(`PATCHKIT_CDP_PORT must be a port number, "0" or "off" — got "${requested}".`);
   }
 
-  for (let port = preferred; port < preferred + CDP_PORT_SEARCH_LIMIT; port += 1) {
-    if (!(await isPortTaken(port))) {
-      if (port !== preferred) {
-        say("");
-        say(`! Port ${preferred} is already in use — another launcher or a browser is likely running.`);
-        say(`  Using port ${port} instead. Point your tooling at it, for example:`);
-        say(`    npx @playwright/mcp --cdp-endpoint http://localhost:${port}`);
-      }
-      return port;
-    }
+  if (await isPortTaken(port)) {
+    fail([
+      `Port ${port} is already in use — another launcher or a browser is probably running.`,
+      "",
+      "Pick one:",
+      `  - stop whatever holds port ${port}`,
+      `  - start on another port:  PATCHKIT_CDP_PORT=${port + 1} <this command>`,
+      "    (tooling configured for the default port needs updating to match)",
+      "  - start without debugging: PATCHKIT_CDP_PORT=0 <this command>",
+    ].join("\n"));
   }
 
-  fail(`No free port found between ${preferred} and ${preferred + CDP_PORT_SEARCH_LIMIT - 1}.`);
+  return port;
 }
 
 function run(binScriptPath, args, cwd) {

@@ -1,24 +1,37 @@
 #!/usr/bin/env node
 
 /**
- * Smoke test for a running launcher. Start the launcher first (`npm run dev` in the
- * project root), then run this against it.
+ * Smoke test for a running launcher. Start the launcher first, then run this against it.
  *
  * It is also a worked example: attaching over CDP, selecting the launcher window,
  * calling the runtime API, and waiting for data instead of sleeping.
  *
- *   node e2e/smoke.mjs
- *   PATCHKIT_CDP_PORT=9333 node e2e/smoke.mjs
+ *   node theme/e2e/smoke.mjs
+ *   PATCHKIT_CDP_PORT=9333 node theme/e2e/smoke.mjs
  */
 
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-/** The dev script records the port it actually bound to, which may not be the default. */
+const THEME_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const PROJECT_DIR = resolve(THEME_DIR, "..");
+
+/** Names the command the reader actually has, rather than assuming one. */
+function packageManager() {
+  if (existsSync(resolve(THEME_DIR, "pnpm-lock.yaml"))) {
+    return "pnpm";
+  }
+  if (existsSync(resolve(THEME_DIR, "package-lock.json"))) {
+    return "npm";
+  }
+  return "yarn";
+}
+
+/** The dev script records the endpoint it started, so it does not have to be guessed. */
 function readSessionEndpoint() {
   try {
-    const sessionFilePath = resolve(dirname(fileURLToPath(import.meta.url)), "..", ".patchkit-dev.json");
+    const sessionFilePath = resolve(PROJECT_DIR, ".patchkit-dev.json");
     return JSON.parse(readFileSync(sessionFilePath, "utf8")).cdpEndpoint ?? undefined;
   } catch {
     return undefined;
@@ -37,7 +50,7 @@ try {
   process.stderr.write([
     "playwright-core is not installed.",
     "",
-    "Install the root dependencies first:  npm install",
+    `Install the theme dependencies first:  cd ${THEME_DIR} && ${packageManager()} install`,
     "",
   ].join("\n"));
   process.exit(1);
@@ -58,8 +71,8 @@ if (browser === undefined) {
   process.stderr.write([
     `Nothing is listening on ${CDP_ENDPOINT}.`,
     "",
-    "Start the launcher first:  npm run dev",
-    "If it reported a different port, pass it as PATCHKIT_CDP_PORT.",
+    `Start the launcher first:  cd ${PROJECT_DIR} && ${packageManager()} dev`,
+    "If it was started on another port, pass it as PATCHKIT_CDP_PORT.",
     "",
   ].join("\n"));
   process.exit(1);

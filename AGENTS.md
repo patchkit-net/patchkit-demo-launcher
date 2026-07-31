@@ -17,11 +17,14 @@ for every piece of data. Nothing else provides it.
 ## Running it
 
 ```
-npm run dev
+yarn dev
 ```
 
 One command. It starts the theme dev server, waits for it, then starts the runtime
 pointed at it. Stop with Ctrl+C.
+
+Commands here are written for yarn because that is the project default; substitute `npm
+run` or `pnpm` if the project was created with one of those.
 
 The output ends with a block listing the theme URL and a CDP endpoint. Those values are
 also written to `.patchkit-dev.json` while the launcher runs, so tooling can read them
@@ -59,8 +62,8 @@ and Zed (Settings → AI → MCP Servers) — need the same server added there b
 npx @playwright/mcp@latest --cdp-endpoint http://localhost:9222
 ```
 
-All of them assume the default port; if the launcher reported a different one, read the
-endpoint from `.patchkit-dev.json`.
+They all use the default port, which is where the launcher starts unless told otherwise.
+The endpoint it actually started on is in `.patchkit-dev.json`.
 
 **If you already have a Playwright MCP server configured, do not use it here.** A general
 one launches its own browser, and a browser cannot render this app — see the section
@@ -75,9 +78,9 @@ Two things to expect on the first call:
   first one is selected by default and snapshots as an empty page. List the tabs and
   select the one whose URL starts with `http://localhost:` before doing anything else.
 - **`ECONNREFUSED` means the launcher is not running**, not that the setup is broken.
-  Start it with `npm run dev` and try again.
+  Start it with `yarn dev` and try again.
 
-**From a script** — see `e2e/smoke.mjs` for a worked example. The short version:
+**From a script** — see `theme/e2e/smoke.mjs` for a worked example. The short version:
 
 ```js
 import { chromium } from "playwright-core";
@@ -102,11 +105,12 @@ const displays = await page.evaluate(() =>
 ## Checking that a change works
 
 ```
-npm run smoke
+yarn smoke
 ```
 
 Attaches to the running launcher and verifies the bridge, the runtime API, the app
-catalogue and library navigation. Requires `npm install` in the project root once.
+catalogue and library navigation. It lives in `theme/`, so it needs no dependencies
+beyond the ones the project already installs.
 
 ## Two things that will catch you out
 
@@ -127,9 +131,11 @@ regression.
 | 9222 | Renderer, i.e. the launcher window | Playwright, Chrome DevTools |
 | 5858 | Electron main process (tasks, installs) | Chrome DevTools via `chrome://inspect` |
 
-Port 9222 shifts to the next free port if it is taken; the startup output and
-`.patchkit-dev.json` always carry the real one. Set `PATCHKIT_CDP_PORT` to pick a port,
-or `PATCHKIT_CDP_PORT=0` to start without one.
+Port 9222 is fixed, so the checked-in MCP configuration always points at the right place.
+If it is already taken the launcher refuses to start and says so, rather than moving to
+another port and leaving that configuration pointing at nothing. `PATCHKIT_CDP_PORT`
+overrides it — tooling then has to be pointed at the new port too — and
+`PATCHKIT_CDP_PORT=0` starts without one.
 
 In a container or on CI, Electron additionally needs
 `PATCHKIT_ELECTRON_ARGS="--no-sandbox --disable-dev-shm-usage"`, and a display —
