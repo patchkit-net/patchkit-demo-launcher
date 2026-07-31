@@ -43,10 +43,24 @@ To see the real thing, look at the Electron window — via CDP, below.
 The runtime opens a Chrome DevTools Protocol port, so the launcher window is automatable
 like any web page. Playwright, Puppeteer and Chrome DevTools all speak this protocol.
 
-**With the Playwright MCP server** — `.mcp.json` in this repository configures one under
-the name `patchkit-launcher`, so an MCP-capable agent can attach with no setup. It
-assumes the default port; if the launcher reported a different one, read the endpoint
-from `.patchkit-dev.json`.
+**With the Playwright MCP server** — this repository ships the configuration, under the
+server name `patchkit-launcher`, for the editors that read it from the project:
+
+| Tool | File |
+| --- | --- |
+| Claude Code | `.mcp.json` |
+| Cursor | `.cursor/mcp.json` |
+| VS Code | `.vscode/mcp.json` |
+
+Tools that only read a global config — Windsurf (`~/.codeium/windsurf/mcp_config.json`)
+and Zed (Settings → AI → MCP Servers) — need the same server added there by hand:
+
+```
+npx @playwright/mcp@latest --cdp-endpoint http://localhost:9222
+```
+
+All of them assume the default port; if the launcher reported a different one, read the
+endpoint from `.patchkit-dev.json`.
 
 Two things to expect on the first call:
 

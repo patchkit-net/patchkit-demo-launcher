@@ -11,9 +11,10 @@
  *   PATCHKIT_CDP_PORT=0 node scripts/dev.mjs      CDP off
  */
 
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { connect } from "node:net";
-import { existsSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -57,26 +58,43 @@ function detectPackageManager(packageDir) {
 }
 
 /**
- * Local binaries are invoked directly rather than through `<pm> run`, so argument
- * forwarding does not depend on package manager behaviour.
+ * Resolves a dependency's entry script so it can be run with this Node executable.
+ *
+ * Going through the package's own `bin` field rather than `node_modules/.bin` keeps
+ * every platform on the same path: no `.cmd` shims, no shell, and therefore no trouble
+ * with spaces in directory names. Resolution follows Node, so hoisted and pnpm layouts
+ * work too.
  */
-function resolveBin(packageDir, binName) {
-  const binDir = resolve(packageDir, "node_modules", ".bin");
-  const candidates = process.platform === "win32"
-    ? [resolve(binDir, `${binName}.cmd`), resolve(binDir, `${binName}.ps1`), resolve(binDir, binName)]
-    : [resolve(binDir, binName)];
+function resolveBinScript(packageDir, packageName, binName) {
+  const requireFromPackage = createRequire(resolve(packageDir, "package.json"));
 
-  const found = candidates.find((candidate) => existsSync(candidate));
+  let packageInfoFilePath;
 
-  if (found === undefined) {
+  try {
+    packageInfoFilePath = requireFromPackage.resolve(`${packageName}/package.json`);
+  } catch {
     fail([
-      `Could not find "${binName}" in ${packageDir}.`,
+      `Could not find "${packageName}" for ${packageDir}.`,
       "",
       `Install the dependencies first:  cd ${packageDir} && ${detectPackageManager(packageDir)} install`,
     ].join("\n"));
   }
 
-  return found;
+  const packageInfo = JSON.parse(readFileSync(packageInfoFilePath, "utf8"));
+  const binField = packageInfo.bin;
+  const binRelativePath = typeof binField === "string" ? binField : binField?.[binName];
+
+  if (binRelativePath === undefined) {
+    fail(`"${packageName}" does not expose a "${binName}" executable.`);
+  }
+
+  const binScriptPath = resolve(dirname(packageInfoFilePath), binRelativePath);
+
+  if (!existsSync(binScriptPath)) {
+    fail(`"${packageName}" is installed but ${binScriptPath} is missing — try reinstalling the dependencies.`);
+  }
+
+  return binScriptPath;
 }
 
 function isPortTaken(port) {
@@ -125,11 +143,10 @@ async function resolveCdpPort() {
   fail(`No free port found between ${preferred} and ${preferred + CDP_PORT_SEARCH_LIMIT - 1}.`);
 }
 
-function run(command, args, cwd) {
-  const child = spawn(command, args, {
+function run(binScriptPath, args, cwd) {
+  const child = spawn(process.execPath, [binScriptPath, ...args], {
     cwd,
     stdio: ["ignore", "pipe", "pipe"],
-    shell: process.platform === "win32",
     env: process.env,
   });
 
@@ -137,7 +154,7 @@ function run(command, args, cwd) {
   child.stderr.pipe(process.stderr);
 
   child.on("error", (error) => {
-    fail(`Failed to start "${command}": ${error.message}`);
+    fail(`Failed to start ${binScriptPath}: ${error.message}`);
   });
 
   return child;
@@ -211,7 +228,20 @@ function shutdown() {
   rmSync(SESSION_FILE_PATH, { force: true });
 
   for (const child of children) {
-    if (child.exitCode === null && child.signalCode === null) {
+    if (child.exitCode !== null || child.signalCode !== null || child.pid === undefined) {
+      continue;
+    }
+
+    if (process.platform === "win32") {
+      // Signals do not reach a child's own children on Windows, so the Electron process
+      // would outlive Ctrl+C. taskkill ends the whole tree, and running it synchronously
+      // means it finishes before this process exits.
+      const result = spawnSync("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore" });
+
+      if (result.error !== undefined) {
+        child.kill();
+      }
+    } else {
       child.kill("SIGTERM");
     }
   }
@@ -227,8 +257,12 @@ process.on("SIGTERM", () => {
 });
 
 // Resolved up front so a missing install is reported before anything else happens.
-const themeBinPath = resolveBin(THEME_DIR, "vite");
-const runtimeBinPath = resolveBin(RUNTIME_DIR, "dev-patchkit-basic-launcher-runtime");
+const themeBinPath = resolveBinScript(THEME_DIR, "vite", "vite");
+const runtimeBinPath = resolveBinScript(
+  RUNTIME_DIR,
+  "@upsoft/patchkit-basic-launcher-runtime-package-dev-tools",
+  "dev-patchkit-basic-launcher-runtime",
+);
 
 const cdpPort = await resolveCdpPort();
 
