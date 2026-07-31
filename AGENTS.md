@@ -131,5 +131,9 @@ Port 9222 shifts to the next free port if it is taken; the startup output and
 `.patchkit-dev.json` always carry the real one. Set `PATCHKIT_CDP_PORT` to pick a port,
 or `PATCHKIT_CDP_PORT=0` to start without one.
 
+In a container or on CI, Electron additionally needs
+`PATCHKIT_ELECTRON_ARGS="--no-sandbox --disable-dev-shm-usage"`, and a display —
+`Xvfb :99` with `DISPLAY=:99` is enough.
+
 Note that Playwright cannot attach to 5858 — it is a Node inspector, not a browser
 target. Pausing there freezes the whole app, unlike a renderer pause.

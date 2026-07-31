@@ -6,9 +6,13 @@
  * automation (Playwright, Chrome DevTools) can attach to the launcher window.
  *
  * Usage:
- *   node scripts/dev.mjs                    CDP on the default port
+ *   node scripts/dev.mjs                          CDP on the default port
  *   PATCHKIT_CDP_PORT=9333 node scripts/dev.mjs   CDP on a specific port
  *   PATCHKIT_CDP_PORT=0 node scripts/dev.mjs      CDP off
+ *
+ * PATCHKIT_ELECTRON_ARGS passes extra arguments to Electron, space separated.
+ * Headless Linux environments such as containers and CI usually need
+ * --no-sandbox there.
  */
 
 import { spawn, spawnSync } from "node:child_process";
@@ -199,9 +203,18 @@ function startRuntime(themeUrl, cdpPort) {
 
   const args = ["-p", presetFileName, "-t", themeUrl];
 
+  const extraElectronArgs = (process.env.PATCHKIT_ELECTRON_ARGS ?? "")
+    .split(" ")
+    .filter((arg) => arg.length > 0);
+
   // Everything after `--` is handed to the Electron process untouched by the SDK CLI.
-  if (cdpPort !== undefined) {
-    args.push("--", `--remote-debugging-port=${String(cdpPort)}`);
+  const electronArgs = [
+    ...(cdpPort === undefined ? [] : [`--remote-debugging-port=${String(cdpPort)}`]),
+    ...extraElectronArgs,
+  ];
+
+  if (electronArgs.length > 0) {
+    args.push("--", ...electronArgs);
   }
 
   const child = run(runtimeBinPath, args, RUNTIME_DIR);

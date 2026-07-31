@@ -80,10 +80,28 @@ also covers the traps worth knowing before trusting what an agent reports.
 
 Set `PATCHKIT_CDP_PORT` to choose the port, or `PATCHKIT_CDP_PORT=0` to start without it.
 If the default port is busy the script picks the next free one and says so.
+`PATCHKIT_ELECTRON_ARGS` passes extra arguments to Electron, which headless Linux
+environments need — see below.
 
 Note that the theme cannot be previewed in a normal browser: it depends on the Electron
 preload bridge for all of its data, so outside the runtime every screen that shows data
 collapses.
+
+### Headless Linux
+
+The launcher is a desktop application, so a container or CI runner needs a display and a
+relaxed Electron sandbox:
+
+```
+Xvfb :99 -screen 0 1280x720x24 &
+export DISPLAY=:99
+export PATCHKIT_ELECTRON_ARGS="--no-sandbox --disable-dev-shm-usage"
+yarn dev
+```
+
+Electron also needs its own system libraries there — on Debian and Ubuntu: `libgtk-3-0`,
+`libnss3`, `libnotify4`, `libxss1`, `libxtst6`, `libatspi2.0-0`, `libdrm2`, `libgbm1`,
+`libasound2`.
 
 ## Publishing
 
