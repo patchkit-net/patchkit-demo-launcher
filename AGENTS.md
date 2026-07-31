@@ -112,6 +112,10 @@ Attaches to the running launcher and verifies the bridge, the runtime API, the a
 catalogue and library navigation. It lives in `theme/`, so it needs no dependencies
 beyond the ones the project already installs.
 
+A launcher with no stored session opens on the sign-in screen. The checks that need a
+signed-in user report `SKIP` rather than failing — signing in needs real credentials, and
+everything above them already proves the launcher is reachable and answering.
+
 ## Two things that will catch you out
 
 **Wait for data, never for time.** The app catalogue is fetched over the network and

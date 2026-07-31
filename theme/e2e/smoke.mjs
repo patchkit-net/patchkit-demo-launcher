@@ -65,13 +65,25 @@ function check(label, passed, detail) {
   }
 }
 
+function skip(label, reason) {
+  process.stdout.write(`SKIP  ${label} — ${reason}\n`);
+}
+
 /**
  * Runs one step and reports a thrown error as a failed check. A stack trace would stop
  * the run at the first problem and say less about it than a named failure does.
+ *
+ * Returning `{ skipped, detail }` marks the step as not applicable rather than failed.
  */
 async function step(label, run) {
   try {
-    const { passed, detail } = await run();
+    const { passed, detail, skipped } = await run();
+
+    if (skipped === true) {
+      skip(label, detail);
+      return;
+    }
+
     check(label, passed, detail);
   } catch (error) {
     check(label, false, String(error).split("\n")[0]);
@@ -174,15 +186,28 @@ await step("apps catalogue reachable", async () => {
   return { passed: appNames.length > 0, detail: appNames.join(", ") };
 });
 
+// A launcher with no stored session opens on the sign-in screen, and signing in needs
+// real credentials. The checks above already prove the bridge and the runtime work; the
+// ones below need a session, so they are skipped rather than reported as broken.
+const isSignedIn = !/user-is-not-authenticated/.test(page.url());
+
 await step("library route reached", async () => {
+  if (!isSignedIn) {
+    return { skipped: true, detail: "launcher is on the sign-in screen" };
+  }
+
   // By role, not by text — once the library is open its heading also reads "Library".
-  await page.getByRole("button", { name: "Library", exact: true }).click();
+  await page.getByRole("button", { name: "Library", exact: true }).click({ timeout: 10_000 });
   await page.waitForURL(/library/, { timeout: 10_000 }).catch(() => undefined);
 
   return { passed: /library/.test(page.url()), detail: page.url() };
 });
 
 await step("catalogue tiles rendered", async () => {
+  if (!isSignedIn) {
+    return { skipped: true, detail: "launcher is on the sign-in screen" };
+  }
+
   // Wait for the data to arrive rather than for a fixed delay — the catalogue fetch
   // is slower than any sleep worth writing, and a timed screenshot lies convincingly.
   const tiles = page.locator("img[src*='app-catalog-images']");
