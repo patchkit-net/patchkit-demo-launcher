@@ -154,10 +154,12 @@ async function resolveCdpPort() {
   return port;
 }
 
-function run(binScriptPath, args, cwd) {
+function run(binScriptPath, args, cwd, { forwardStdin = false } = {}) {
   const child = spawn(process.execPath, [binScriptPath, ...args], {
     cwd,
-    stdio: ["ignore", "pipe", "pipe"],
+    // The runtime prints its own keyboard commands, so its input has to reach it —
+    // otherwise those instructions are shown and do nothing.
+    stdio: [forwardStdin ? "inherit" : "ignore", "pipe", "pipe"],
     env: process.env,
   });
 
@@ -228,7 +230,7 @@ function startRuntime(themeUrl, cdpPort) {
     args.push("--", ...electronArgs);
   }
 
-  const child = run(runtimeBinPath, args, RUNTIME_DIR);
+  const child = run(runtimeBinPath, args, RUNTIME_DIR, { forwardStdin: true });
   child.stdout.pipe(process.stdout);
 
   return child;
