@@ -13,7 +13,7 @@
     "publish:lin": "dotenv -e ../.env -- build-patchkit-basic-launcher-runtime -p linux-prod-preset.ts --uploadRuntime --publishRuntime"
   },
   "devDependencies": {
-    "@upsoft/patchkit-basic-launcher-runtime-package-dev-tools": "2.0.0-alpha.27",
+    "@upsoft/patchkit-basic-launcher-runtime-package-dev-tools": "2.0.0-alpha.35",
     "dotenv-cli": "^8.0.0"
   }
 }
