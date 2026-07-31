@@ -62,6 +62,12 @@ npx @playwright/mcp@latest --cdp-endpoint http://localhost:9222
 All of them assume the default port; if the launcher reported a different one, read the
 endpoint from `.patchkit-dev.json`.
 
+**If you already have a Playwright MCP server configured, do not use it here.** A general
+one launches its own browser, and a browser cannot render this app — see the section
+above. You would be looking at a broken page while reporting on the launcher. Use the
+`patchkit-launcher` server, which attaches to the running Electron window instead. The
+difference is the `--cdp-endpoint` argument.
+
 Two things to expect on the first call:
 
 - **You will not land on the launcher.** The endpoint exposes three tabs — a React

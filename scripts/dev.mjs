@@ -285,7 +285,10 @@ if (cdpPort === undefined) {
 } else {
   say(`  CDP endpoint   http://localhost:${String(cdpPort)}`);
   say("");
-  say("  The launcher window is automatable over that endpoint.");
+  say("  The launcher window can be screenshotted and clicked through that");
+  say("  endpoint — by a coding agent (see AGENTS.md) or by hand with");
+  say("  Playwright or Chrome DevTools (see README.md).");
+  say("");
   say("  Do not open the theme URL in a plain browser — without the");
   say("  Electron preload bridge the launcher has no runtime to talk to.");
 }
