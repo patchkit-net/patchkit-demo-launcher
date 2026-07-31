@@ -65,6 +65,19 @@ function check(label, passed, detail) {
   }
 }
 
+/**
+ * Runs one step and reports a thrown error as a failed check. A stack trace would stop
+ * the run at the first problem and say less about it than a named failure does.
+ */
+async function step(label, run) {
+  try {
+    const { passed, detail } = await run();
+    check(label, passed, detail);
+  } catch (error) {
+    check(label, false, String(error).split("\n")[0]);
+  }
+}
+
 const browser = await chromium.connectOverCDP(CDP_ENDPOINT).catch(() => undefined);
 
 if (browser === undefined) {
@@ -79,12 +92,35 @@ if (browser === undefined) {
 }
 
 // CDP also exposes the DevTools window and extension pages, so select by URL.
-const page = browser
-  .contexts()
-  .flatMap((context) => context.pages())
-  .find((candidate) => /^https?:\/\/(localhost|127\.0\.0\.1):\d+/.test(candidate.url()));
+function findLauncherPage() {
+  return browser
+    .contexts()
+    .flatMap((context) => context.pages())
+    .find((candidate) => /^https?:\/\/(localhost|127\.0\.0\.1):\d+/.test(candidate.url()));
+}
 
-check("launcher window attached", page !== undefined, page?.url());
+/**
+ * The debugging port answers before the window has finished loading the theme, so the
+ * page is waited for rather than looked up once — otherwise running this immediately
+ * after starting the launcher reports a failure that only means "too early".
+ */
+async function waitForLauncherPage(timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+
+  for (;;) {
+    const found = findLauncherPage();
+
+    if (found !== undefined || Date.now() > deadline) {
+      return found;
+    }
+
+    await new Promise((resolveWait) => setTimeout(resolveWait, 500));
+  }
+}
+
+const page = await waitForLauncherPage(60_000);
+
+check("launcher window attached", page !== undefined, page?.url() ?? "no page serving the theme appeared");
 
 if (page === undefined) {
   await browser.close();
@@ -107,44 +143,55 @@ async function callRuntimeApi(funcFullname, args) {
   );
 }
 
-const bridge = await page.evaluate(() => ({
-  launcherId: window.patchKitLauncherId,
-  runtimeVersionLabel: window.patchKitLauncherRuntimeVersionLabel,
-  platform: window.patchKitLauncherTargetOperatingSystemPlatform,
-  hasBridge: typeof window.sendPatchKitLauncherRuntimeApiFuncRequest === "function",
-}));
+await step("preload bridge exposed", async () => {
+  const bridge = await page.evaluate(() => ({
+    launcherId: window.patchKitLauncherId,
+    runtimeVersionLabel: window.patchKitLauncherRuntimeVersionLabel,
+    platform: window.patchKitLauncherTargetOperatingSystemPlatform,
+    hasBridge: typeof window.sendPatchKitLauncherRuntimeApiFuncRequest === "function",
+  }));
 
-check("preload bridge exposed", bridge.hasBridge === true, JSON.stringify(bridge));
-
-const displays = await callRuntimeApi("PatchKitLauncher.fetchDisplaysInfo", {});
-
-check(
-  "runtime API responds",
-  Array.isArray(displays?.execResult) && displays.execResult.length > 0,
-  `${String(displays?.execResult?.length ?? 0)} display(s)`,
-);
-
-const apps = await callRuntimeApi("PatchKitLauncher.fetchAppsInfoQueryPageData", {
-  appsInfoQueryParams: { pageLimit: 10 },
-  appsInfoQueryPageParams: { offset: 0 },
+  return { passed: bridge.hasBridge === true, detail: JSON.stringify(bridge) };
 });
 
-const appNames = Object.values(apps?.execResult?.appsInfo ?? {}).map((app) => app.name);
+await step("runtime API responds", async () => {
+  const displays = await callRuntimeApi("PatchKitLauncher.fetchDisplaysInfo", {});
 
-check("apps catalogue reachable", appNames.length > 0, appNames.join(", "));
+  return {
+    passed: Array.isArray(displays?.execResult) && displays.execResult.length > 0,
+    detail: `${String(displays?.execResult?.length ?? 0)} display(s)`,
+  };
+});
 
-// By role, not by text — once the library is open its heading also reads "Library".
-await page.getByRole("button", { name: "Library", exact: true }).click();
-await page.waitForURL(/library/, { timeout: 10_000 }).catch(() => undefined);
+await step("apps catalogue reachable", async () => {
+  const apps = await callRuntimeApi("PatchKitLauncher.fetchAppsInfoQueryPageData", {
+    appsInfoQueryParams: { pageLimit: 10 },
+    appsInfoQueryPageParams: { offset: 0 },
+  });
 
-check("library route reached", /library/.test(page.url()), page.url());
+  const appNames = Object.values(apps?.execResult?.appsInfo ?? {}).map((app) => app.name);
 
-// Wait for the data to arrive rather than for a fixed delay — the catalogue fetch
-// is slower than any sleep worth writing, and a timed screenshot lies convincingly.
-const tiles = page.locator("img[src*='app-catalog-images']");
-await tiles.first().waitFor({ timeout: 30_000 }).catch(() => undefined);
+  return { passed: appNames.length > 0, detail: appNames.join(", ") };
+});
 
-check("catalogue tiles rendered", (await tiles.count()) > 0, `${String(await tiles.count())} tile(s)`);
+await step("library route reached", async () => {
+  // By role, not by text — once the library is open its heading also reads "Library".
+  await page.getByRole("button", { name: "Library", exact: true }).click();
+  await page.waitForURL(/library/, { timeout: 10_000 }).catch(() => undefined);
+
+  return { passed: /library/.test(page.url()), detail: page.url() };
+});
+
+await step("catalogue tiles rendered", async () => {
+  // Wait for the data to arrive rather than for a fixed delay — the catalogue fetch
+  // is slower than any sleep worth writing, and a timed screenshot lies convincingly.
+  const tiles = page.locator("img[src*='app-catalog-images']");
+  await tiles.first().waitFor({ timeout: 30_000 }).catch(() => undefined);
+
+  const count = await tiles.count();
+
+  return { passed: count > 0, detail: `${String(count)} tile(s)` };
+});
 
 check("no page errors", pageErrors.length === 0, pageErrors.slice(0, 3).join(" | ") || "none");
 

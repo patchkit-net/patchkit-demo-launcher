@@ -45,6 +45,9 @@ function say(message) {
 }
 
 function fail(message) {
+  // Stops whatever already started — otherwise a late failure, such as the runtime
+  // refusing to launch, would leave the theme dev server running unattended.
+  shutdown();
   process.stderr.write(`${message}\n`);
   process.exit(1);
 }
@@ -107,9 +110,12 @@ function isPortTaken(port) {
       socket.destroy();
       resolveIsTaken(taken);
     };
-    socket.setTimeout(700);
+    // A loopback connection either succeeds or is refused immediately, so a timeout is
+    // an anomaly. Calling it taken costs a needless message; calling it free would let
+    // the launcher report an endpoint that never opens.
+    socket.setTimeout(1000);
     socket.once("connect", () => settle(true));
-    socket.once("timeout", () => settle(false));
+    socket.once("timeout", () => settle(true));
     socket.once("error", () => settle(false));
   });
 }
@@ -181,7 +187,11 @@ function startTheme() {
       const text = chunk.toString();
       process.stdout.write(text);
 
-      const match = /(http:\/\/localhost:\d+)/.exec(text);
+      // Prefer the address Vite labels as local; fall back to any localhost URL in case
+      // that label ever changes, rather than hanging on a format difference.
+      const match = /Local:\s+(http:\/\/localhost:\d+)/.exec(text)
+        ?? /(http:\/\/localhost:\d+)/.exec(text);
+
       if (match !== null) {
         clearTimeout(timeout);
         resolveUrl(match[1]);
