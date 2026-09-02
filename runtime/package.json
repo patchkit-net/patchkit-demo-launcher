@@ -4,10 +4,7 @@
   "version": "2.1.0",
   "scripts": {
     "build": "build-patchkit-basic-launcher-runtime",
-    "dev": "dev-patchkit-basic-launcher-runtime",
-    "dev:mac": "dev-patchkit-basic-launcher-runtime -p macos-prod-preset.ts -t http://localhost:5173",
-    "dev:win": "dev-patchkit-basic-launcher-runtime -p windows-prod-preset.ts -t http://localhost:5173",
-    "dev:lin": "dev-patchkit-basic-launcher-runtime -p linux-prod-preset.ts -t http://localhost:5173",
+    "dev": "node ../scripts/dev.mjs",
     "publish:mac": "dotenv -e ../.env -- build-patchkit-basic-launcher-runtime -p macos-prod-preset.ts --uploadRuntime --publishRuntime",
     "publish:win": "dotenv -e ../.env -- build-patchkit-basic-launcher-runtime -p windows-prod-preset.ts --uploadRuntime --publishRuntime",
     "publish:lin": "dotenv -e ../.env -- build-patchkit-basic-launcher-runtime -p linux-prod-preset.ts --uploadRuntime --publishRuntime"
