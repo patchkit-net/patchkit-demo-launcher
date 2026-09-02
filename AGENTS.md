@@ -1,0 +1,157 @@
+# Working on this launcher
+
+Read this before running or inspecting the app.
+
+## What this project is
+
+A desktop game launcher built with the PatchKit Launcher SDK. Two parts:
+
+- `theme/` — a React app served by Vite. This is the UI.
+- `runtime/` — the Electron shell that loads the theme and provides the launcher
+  functionality: installing apps, update tasks, disk access, launching games.
+
+The theme is a web page, but **it only works inside the runtime**. Electron injects a
+preload bridge (`window.sendPatchKitLauncherRuntimeApiFuncRequest`) that the theme calls
+for every piece of data. Nothing else provides it.
+
+## Running it
+
+```
+yarn dev
+```
+
+One command. It starts the theme dev server, waits for it, then starts the runtime
+pointed at it. Stop with Ctrl+C.
+
+Commands here are written for yarn because that is the project default; substitute `npm
+run` or `pnpm` if the project was created with one of those.
+
+The output ends with a block listing the theme URL and a CDP endpoint. Those values are
+also written to `.patchkit-dev.json` while the launcher runs, so tooling can read them
+instead of guessing.
+
+If the dependencies are missing, the script says which directory to install them in.
+
+## Do not open the theme URL in a browser
+
+Opening `http://localhost:5173` in Chrome or Safari gives you a broken page, not a
+preview. Without the preload bridge every data query throws, and because most screens
+use Suspense queries, whole sections disappear rather than showing an error. You will be
+looking at something that resembles the launcher but proves nothing about it.
+
+To see the real thing, look at the Electron window — via CDP, below.
+
+## Inspecting the running launcher
+
+The runtime opens a Chrome DevTools Protocol port, so the launcher window is automatable
+like any web page. Playwright, Puppeteer and Chrome DevTools all speak this protocol.
+
+**With the Playwright MCP server** — this repository ships the configuration, under the
+server name `patchkit-launcher`, for the editors that read it from the project:
+
+| Tool | File |
+| --- | --- |
+| Claude Code | `.mcp.json` |
+| Cursor | `.cursor/mcp.json` |
+| VS Code | `.vscode/mcp.json` |
+
+Tools that only read a global config — Windsurf (`~/.codeium/windsurf/mcp_config.json`)
+and Zed (Settings → AI → MCP Servers) — need the same server added there by hand:
+
+```
+npx @playwright/mcp@latest --cdp-endpoint http://localhost:9222
+```
+
+They all use the default port, which is where the launcher starts unless told otherwise.
+The endpoint it actually started on is in `.patchkit-dev.json`.
+
+**If you already have a Playwright MCP server configured, do not use it here.** A general
+one launches its own browser, and a browser cannot render this app — see the section
+above. You would be looking at a broken page while reporting on the launcher. Use the
+`patchkit-launcher` server, which attaches to the running Electron window instead. The
+difference is the `--cdp-endpoint` argument.
+
+Two things to expect on the first call:
+
+- **You will not land on the launcher.** The endpoint exposes three tabs — a React
+  DevTools background page, the detached DevTools window, and the launcher itself. The
+  first one is selected by default and snapshots as an empty page. List the tabs and
+  select the one whose URL starts with `http://localhost:` before doing anything else.
+- **`ECONNREFUSED` means the launcher is not running**, not that the setup is broken.
+  Start it with `yarn dev` and try again.
+
+**From a script** — see `theme/e2e/smoke.mjs` for a worked example. The short version:
+
+```js
+import { chromium } from "playwright-core";
+
+const browser = await chromium.connectOverCDP("http://localhost:9222");
+
+// CDP also exposes the DevTools window and extension pages — select by URL.
+// Match any localhost port: the theme moves off 5173 whenever that port is taken, so
+// hardcoding it finds nothing on a machine that already runs another dev server.
+const page = browser.contexts()
+  .flatMap((context) => context.pages())
+  .find((candidate) => /^https?:\/\/(localhost|127\.0\.0\.1):\d+/.test(candidate.url()));
+
+await page.screenshot({ path: "launcher.png" });
+```
+
+You can also call the runtime API directly, exactly as the theme does:
+
+```js
+const displays = await page.evaluate(() =>
+  window.sendPatchKitLauncherRuntimeApiFuncRequest("PatchKitLauncher.fetchDisplaysInfo", {}));
+```
+
+## Checking that a change works
+
+```
+yarn smoke
+```
+
+Attaches to the running launcher and verifies the bridge, the runtime API, the app
+catalogue and library navigation. It lives in `theme/`, so it needs no dependencies
+beyond the ones the project already installs.
+
+A launcher with no stored session opens on the sign-in screen, so the test signs itself in
+through the mock user provider this template ships (`theme/src/customization.ts`). A
+project that switches to another provider cannot be signed into without real credentials;
+there the checks that need a session report `SKIP` instead.
+
+Read the summary line, not just the exit code: a run with skipped checks covers less than
+a full one, and says so in the parentheses after `SMOKE TEST PASSED`.
+
+## Two things that will catch you out
+
+**Wait for data, never for time.** The app catalogue is fetched over the network and
+rendered through Suspense. A fixed delay produces a screenshot of a half-empty screen
+that looks like a bug in your change. Wait for the element that proves the data arrived.
+
+**A missing tile is not always a failure.** A card whose default branch does not exist in
+the catalogue is hidden deliberately — see the early return in
+`theme/src/components/library/app-card.tsx`. Check the branch before assuming a
+regression.
+
+## Ports
+
+| Port | What it is | Attach with |
+| --- | --- | --- |
+| 5173 | Theme dev server — first choice only; Vite moves to the next free port when it is taken, and `.patchkit-dev.json` records where it landed | — |
+| 9222 | Renderer, i.e. the launcher window | Playwright, Chrome DevTools |
+| 5858 | Electron main process (tasks, installs) | Chrome DevTools via `chrome://inspect` |
+
+Port 9222 is fixed, so the checked-in MCP configuration always points at the right place.
+If it is already taken the launcher refuses to start and says so, rather than moving to
+another port and leaving that configuration pointing at nothing. `PATCHKIT_CDP_PORT`
+overrides it — tooling then has to be pointed at the new port too — and
+`PATCHKIT_CDP_PORT=0` starts without one.
+
+In a container or on CI, Electron additionally needs
+`PATCHKIT_ELECTRON_ARGS="--no-sandbox --disable-dev-shm-usage"`, and a display —
+`Xvfb :99` with `DISPLAY=:99` is enough. That variable is split on spaces, so an argument
+that contains one has to be passed as a JSON array:
+`PATCHKIT_ELECTRON_ARGS='["--user-data-dir=/Users/Jane Doe/data"]'`.
+
+Note that Playwright cannot attach to 5858 — it is a Node inspector, not a browser
+target. Pausing there freezes the whole app, unlike a renderer pause.
