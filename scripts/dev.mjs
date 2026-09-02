@@ -10,9 +10,13 @@
  *   PATCHKIT_CDP_PORT=9333 node scripts/dev.mjs   CDP on a specific port
  *   PATCHKIT_CDP_PORT=0 node scripts/dev.mjs      CDP off
  *
- * PATCHKIT_ELECTRON_ARGS passes extra arguments to Electron, space separated.
- * Headless Linux environments such as containers and CI usually need
- * --no-sandbox there.
+ * PATCHKIT_ELECTRON_ARGS passes extra arguments to Electron, space separated, or as a
+ * JSON array when an argument contains a space:
+ *
+ *   PATCHKIT_ELECTRON_ARGS='--no-sandbox'
+ *   PATCHKIT_ELECTRON_ARGS='["--user-data-dir=/Users/Jane Doe/data"]'
+ *
+ * Headless Linux environments such as containers and CI usually need --no-sandbox there.
  */
 
 import { spawn, spawnSync } from "node:child_process";
@@ -39,6 +43,12 @@ const RUNTIME_PRESET_FILE_NAMES = {
 };
 
 const children = [];
+
+/**
+ * The pid of the Electron process, read from the runtime's own output. It is a grandchild
+ * of this script — the runtime CLI spawns it — and shutdown() has no other way to reach it.
+ */
+let electronProcessId;
 
 function say(message) {
   process.stdout.write(`${message}\n`);
@@ -207,6 +217,33 @@ function startTheme() {
   });
 }
 
+/**
+ * Space separation cannot express an argument that contains a space, and a path with one
+ * in it is ordinary — a mangled argument reaches Electron looking like two, with nothing
+ * reporting that it was split. A JSON array is accepted as the unambiguous form.
+ */
+function parseExtraElectronArgs() {
+  const raw = process.env.PATCHKIT_ELECTRON_ARGS ?? "";
+
+  if (!raw.trimStart().startsWith("[")) {
+    return raw.split(" ").filter((arg) => arg.length > 0);
+  }
+
+  let parsed;
+
+  try {
+    parsed = JSON.parse(raw);
+  } catch (error) {
+    fail(`PATCHKIT_ELECTRON_ARGS starts with "[" but is not valid JSON: ${error.message}`);
+  }
+
+  if (!Array.isArray(parsed) || parsed.some((arg) => typeof arg !== "string")) {
+    fail("PATCHKIT_ELECTRON_ARGS given as JSON must be an array of strings.");
+  }
+
+  return parsed;
+}
+
 function startRuntime(themeUrl, cdpPort) {
   const presetFileName = RUNTIME_PRESET_FILE_NAMES[process.platform];
 
@@ -216,14 +253,10 @@ function startRuntime(themeUrl, cdpPort) {
 
   const args = ["-p", presetFileName, "-t", themeUrl];
 
-  const extraElectronArgs = (process.env.PATCHKIT_ELECTRON_ARGS ?? "")
-    .split(" ")
-    .filter((arg) => arg.length > 0);
-
   // Everything after `--` is handed to the Electron process untouched by the SDK CLI.
   const electronArgs = [
     ...(cdpPort === undefined ? [] : [`--remote-debugging-port=${String(cdpPort)}`]),
-    ...extraElectronArgs,
+    ...parseExtraElectronArgs(),
   ];
 
   if (electronArgs.length > 0) {
@@ -231,7 +264,19 @@ function startRuntime(themeUrl, cdpPort) {
   }
 
   const child = run(runtimeBinPath, args, RUNTIME_DIR, { forwardStdin: true });
-  child.stdout.pipe(process.stdout);
+
+  child.stdout.on("data", (chunk) => {
+    const text = chunk.toString();
+    process.stdout.write(text);
+
+    // The runtime announces the pid of the Electron process it started, and a restart
+    // announces the new one. Capturing it is what makes that process stoppable.
+    const match = /processId:\s*(\d+)/.exec(text);
+
+    if (match !== null) {
+      electronProcessId = Number.parseInt(match[1], 10);
+    }
+  });
 
   return child;
 }
@@ -252,6 +297,19 @@ function writeSessionFile(themeUrl, cdpPort) {
 
 function shutdown() {
   rmSync(SESSION_FILE_PATH, { force: true });
+
+  // The runtime CLI installs no signal handler and spawns Electron as its own child, so
+  // a signal sent to the CLI ends the CLI and orphans Electron — still on screen, still
+  // holding the debugging ports. Ctrl+C in a terminal hides this, because the terminal
+  // signals the whole foreground group; every other way of stopping this script does not.
+  // On Windows the taskkill below ends the tree, so this is the POSIX half of the same job.
+  if (process.platform !== "win32" && electronProcessId !== undefined) {
+    try {
+      process.kill(electronProcessId, "SIGTERM");
+    } catch {
+      // Already gone: it exited on its own, or a group signal reached it first.
+    }
+  }
 
   for (const child of children) {
     if (child.exitCode !== null || child.signalCode !== null || child.pid === undefined) {
