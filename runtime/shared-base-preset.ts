@@ -20,5 +20,7 @@ export const SHARED_BASE_PRESET = {
     },
   },
   protocol: {},
-  tray: {},
+  tray: {
+    isTemplateImage: true,
+  },
 } satisfies PatchKitBasicLauncher.PartialPreset;
