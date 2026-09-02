@@ -88,9 +88,11 @@ import { chromium } from "playwright-core";
 const browser = await chromium.connectOverCDP("http://localhost:9222");
 
 // CDP also exposes the DevTools window and extension pages — select by URL.
+// Match any localhost port: the theme moves off 5173 whenever that port is taken, so
+// hardcoding it finds nothing on a machine that already runs another dev server.
 const page = browser.contexts()
   .flatMap((context) => context.pages())
-  .find((candidate) => candidate.url().startsWith("http://localhost:5173"));
+  .find((candidate) => /^https?:\/\/(localhost|127\.0\.0\.1):\d+/.test(candidate.url()));
 
 await page.screenshot({ path: "launcher.png" });
 ```
@@ -112,9 +114,13 @@ Attaches to the running launcher and verifies the bridge, the runtime API, the a
 catalogue and library navigation. It lives in `theme/`, so it needs no dependencies
 beyond the ones the project already installs.
 
-A launcher with no stored session opens on the sign-in screen. The checks that need a
-signed-in user report `SKIP` rather than failing — signing in needs real credentials, and
-everything above them already proves the launcher is reachable and answering.
+A launcher with no stored session opens on the sign-in screen, so the test signs itself in
+through the mock user provider this template ships (`theme/src/customization.ts`). A
+project that switches to another provider cannot be signed into without real credentials;
+there the checks that need a session report `SKIP` instead.
+
+Read the summary line, not just the exit code: a run with skipped checks covers less than
+a full one, and says so in the parentheses after `SMOKE TEST PASSED`.
 
 ## Two things that will catch you out
 
@@ -131,7 +137,7 @@ regression.
 
 | Port | What it is | Attach with |
 | --- | --- | --- |
-| 5173 | Theme dev server | — |
+| 5173 | Theme dev server — first choice only; Vite moves to the next free port when it is taken, and `.patchkit-dev.json` records where it landed | — |
 | 9222 | Renderer, i.e. the launcher window | Playwright, Chrome DevTools |
 | 5858 | Electron main process (tasks, installs) | Chrome DevTools via `chrome://inspect` |
 
@@ -143,7 +149,9 @@ overrides it — tooling then has to be pointed at the new port too — and
 
 In a container or on CI, Electron additionally needs
 `PATCHKIT_ELECTRON_ARGS="--no-sandbox --disable-dev-shm-usage"`, and a display —
-`Xvfb :99` with `DISPLAY=:99` is enough.
+`Xvfb :99` with `DISPLAY=:99` is enough. That variable is split on spaces, so an argument
+that contains one has to be passed as a JSON array:
+`PATCHKIT_ELECTRON_ARGS='["--user-data-dir=/Users/Jane Doe/data"]'`.
 
 Note that Playwright cannot attach to 5858 — it is a Node inspector, not a browser
 target. Pausing there freezes the whole app, unlike a renderer pause.

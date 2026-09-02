@@ -47,7 +47,8 @@ yarn smoke
 ```
 
 Attaches to the launcher started by `yarn dev` and checks that the UI, the runtime API
-and the app catalogue all work.
+and the app catalogue all work. It signs itself in through the mock user provider the
+template ships, so the checks that need a session run on a fresh checkout too.
 
 ## Inspecting the running launcher
 
@@ -56,8 +57,8 @@ screenshotted, clicked and queried from outside. The endpoint is printed at star
 written to `.patchkit-dev.json`.
 
 **With Chrome DevTools** — open `http://localhost:9222` in Chrome and pick the page
-served from `localhost:5173`. The runtime also opens a DevTools window of its own on
-startup in development mode.
+served from the theme URL in `.patchkit-dev.json`. The runtime also opens a DevTools
+window of its own on startup in development mode.
 
 **With Playwright** — connect to the endpoint instead of launching a browser:
 
@@ -67,9 +68,10 @@ import { chromium } from "playwright-core";
 const browser = await chromium.connectOverCDP("http://localhost:9222");
 
 // The endpoint also exposes the DevTools window and extension pages — select by URL.
+// Match any localhost port: the theme moves off 5173 whenever that port is taken.
 const page = browser.contexts()
   .flatMap((context) => context.pages())
-  .find((candidate) => candidate.url().startsWith("http://localhost:5173"));
+  .find((candidate) => /^https?:\/\/(localhost|127\.0\.0\.1):\d+/.test(candidate.url()));
 
 await page.screenshot({ path: "launcher.png" });
 ```
@@ -85,7 +87,9 @@ The port is fixed at 9222 so that checked-in tooling configuration keeps working
 is already in use the launcher stops with an explanation instead of quietly moving
 elsewhere. `PATCHKIT_CDP_PORT` overrides it, and `PATCHKIT_CDP_PORT=0` starts without it.
 `PATCHKIT_ELECTRON_ARGS` passes extra arguments to Electron, which headless Linux
-environments need — see below.
+environments need — see below. It is space separated, so an argument containing a space
+has to be given as a JSON array instead:
+`PATCHKIT_ELECTRON_ARGS='["--user-data-dir=/Users/Jane Doe/data"]'`.
 
 Note that the theme cannot be previewed in a normal browser: it depends on the Electron
 preload bridge for all of its data, so outside the runtime every screen that shows data
