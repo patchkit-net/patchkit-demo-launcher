@@ -28,19 +28,39 @@ function packageManager() {
   return "yarn";
 }
 
+/** A launcher started without a debugging port: running, but nothing to attach to. */
+const CDP_DISABLED = "disabled";
+
 /** The dev script records the endpoint it started, so it does not have to be guessed. */
 function readSessionEndpoint() {
   try {
     const sessionFilePath = resolve(PROJECT_DIR, ".patchkit-dev.json");
-    return JSON.parse(readFileSync(sessionFilePath, "utf8")).cdpEndpoint ?? undefined;
+    const { cdpEndpoint } = JSON.parse(readFileSync(sessionFilePath, "utf8"));
+
+    // A recorded `null` is the dev script saying the port was switched off — a different
+    // situation from no session file, and one the default port would misreport.
+    return cdpEndpoint === null ? CDP_DISABLED : cdpEndpoint ?? undefined;
   } catch {
     return undefined;
   }
 }
 
-const CDP_ENDPOINT = process.env.PATCHKIT_CDP_PORT !== undefined
-  ? `http://localhost:${process.env.PATCHKIT_CDP_PORT}`
-  : readSessionEndpoint() ?? "http://localhost:9222";
+/** Reads PATCHKIT_CDP_PORT the way the dev script does, "off" and "0" included. */
+function resolveCdpEndpoint() {
+  const requested = process.env.PATCHKIT_CDP_PORT;
+
+  if (requested === "0" || requested === "off") {
+    return CDP_DISABLED;
+  }
+
+  if (requested !== undefined) {
+    return `http://localhost:${requested}`;
+  }
+
+  return readSessionEndpoint() ?? "http://localhost:9222";
+}
+
+const CDP_ENDPOINT = resolveCdpEndpoint();
 
 let chromium;
 
@@ -57,6 +77,7 @@ try {
 }
 
 const failures = [];
+const skips = [];
 
 function check(label, passed, detail) {
   process.stdout.write(`${passed ? "PASS" : "FAIL"}  ${label}${detail === undefined ? "" : ` — ${detail}`}\n`);
@@ -67,6 +88,7 @@ function check(label, passed, detail) {
 
 function skip(label, reason) {
   process.stdout.write(`SKIP  ${label} — ${reason}\n`);
+  skips.push(label);
 }
 
 /**
@@ -90,7 +112,38 @@ async function step(label, run) {
   }
 }
 
-const browser = await chromium.connectOverCDP(CDP_ENDPOINT).catch(() => undefined);
+if (CDP_ENDPOINT === CDP_DISABLED) {
+  process.stderr.write([
+    "The launcher was started with its debugging port switched off (PATCHKIT_CDP_PORT=0),",
+    "so there is no endpoint to attach to.",
+    "",
+    `Restart it without that variable:  cd ${PROJECT_DIR} && ${packageManager()} dev`,
+    "",
+  ].join("\n"));
+  process.exit(1);
+}
+
+/**
+ * The dev script writes the session file before Electron opens the port it names, so the
+ * endpoint can be known a moment before it answers. Connecting once would report a
+ * launcher that is still booting as one that is not running — the same "too early"
+ * mistake waitForLauncherPage below exists to avoid.
+ */
+async function connectWithRetry(timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+
+  for (;;) {
+    const connected = await chromium.connectOverCDP(CDP_ENDPOINT).catch(() => undefined);
+
+    if (connected !== undefined || Date.now() > deadline) {
+      return connected;
+    }
+
+    await new Promise((resolveWait) => setTimeout(resolveWait, 500));
+  }
+}
+
+const browser = await connectWithRetry(30_000);
 
 if (browser === undefined) {
   process.stderr.write([
@@ -186,14 +239,57 @@ await step("apps catalogue reachable", async () => {
   return { passed: appNames.length > 0, detail: appNames.join(", ") };
 });
 
-// A launcher with no stored session opens on the sign-in screen, and signing in needs
-// real credentials. The checks above already prove the bridge and the runtime work; the
-// ones below need a session, so they are skipped rather than reported as broken.
-const isSignedIn = !/user-is-not-authenticated/.test(page.url());
+/**
+ * Whether a session can be established without real credentials. The template ships a
+ * mock user provider that accepts anything; a project that switches to another one cannot
+ * be signed into from here, and the checks that need a session are skipped there instead.
+ */
+function usesMockUserProvider() {
+  try {
+    const source = readFileSync(resolve(THEME_DIR, "src/customization.ts"), "utf8");
+    return /userProviderType:\s*"mock"/.test(source);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * A launcher with no stored session opens on the sign-in screen, which is what a freshly
+ * created project does — so signing in is part of the smoke test rather than a reason to
+ * skip the only checks that exercise the UI.
+ */
+async function signIn() {
+  if (!/user-is-not-authenticated/.test(page.url())) {
+    return true;
+  }
+
+  // Any credentials work against the mock provider except the literal sentinels it uses
+  // to simulate a rejection and a failure.
+  await page.fill("#email", "smoke@example.com");
+  await page.fill("#password", "smoke");
+  await page.getByRole("button", { name: "Login", exact: true }).click({ timeout: 10_000 });
+  await page
+    .waitForURL((url) => !/user-is-not-authenticated/.test(url.toString()), { timeout: 15_000 })
+    .catch(() => undefined);
+
+  return !/user-is-not-authenticated/.test(page.url());
+}
+
+let isSignedIn = false;
+
+await step("signed in", async () => {
+  if (!usesMockUserProvider()) {
+    return { skipped: true, detail: "the theme is configured with a non-mock user provider" };
+  }
+
+  isSignedIn = await signIn();
+
+  return { passed: isSignedIn, detail: page.url() };
+});
 
 await step("library route reached", async () => {
   if (!isSignedIn) {
-    return { skipped: true, detail: "launcher is on the sign-in screen" };
+    return { skipped: true, detail: "no session — see the sign-in check above" };
   }
 
   // By role, not by text — once the library is open its heading also reads "Library".
@@ -205,7 +301,7 @@ await step("library route reached", async () => {
 
 await step("catalogue tiles rendered", async () => {
   if (!isSignedIn) {
-    return { skipped: true, detail: "launcher is on the sign-in screen" };
+    return { skipped: true, detail: "no session — see the sign-in check above" };
   }
 
   // Wait for the data to arrive rather than for a fixed delay — the catalogue fetch
@@ -222,5 +318,11 @@ check("no page errors", pageErrors.length === 0, pageErrors.slice(0, 3).join(" |
 
 await browser.close();
 
-process.stdout.write(`\n${failures.length === 0 ? "SMOKE TEST PASSED" : `SMOKE TEST FAILED: ${failures.join(", ")}`}\n`);
+// A run with skipped checks covers less than a full one, so the summary says so —
+// otherwise a reduced run and a complete one print the same line and exit the same way.
+const summary = failures.length === 0
+  ? `SMOKE TEST PASSED${skips.length === 0 ? "" : ` (${String(skips.length)} skipped: ${skips.join(", ")})`}`
+  : `SMOKE TEST FAILED: ${failures.join(", ")}`;
+
+process.stdout.write(`\n${summary}\n`);
 process.exit(failures.length === 0 ? 0 : 1);
